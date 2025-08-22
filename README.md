@@ -176,10 +176,10 @@ endpoint = agent.deploy()
 
 ## 📚 Learn More
 
-- **📖 [Documentation](https://flowstack-fun.github.io/flowstack/)** - Complete guides and examples
-- **🚀 [5-Minute Tutorial](https://flowstack-fun.github.io/flowstack/quickstart/)** - Get started immediately
-- **🧠 [DataVault Guide](https://flowstack-fun.github.io/flowstack/datavault/)** - Persistent agent memory
-- **🍳 [Recipe Collection](https://flowstack-fun.github.io/flowstack/recipes/chatbot/)** - Real-world examples
+- **📖 [Documentation](https://docs.flowstack.fun/)** - Complete guides and examples
+- **🚀 [5-Minute Tutorial](https://docs.flowstack.fun/quickstart/)** - Get started immediately
+- **🧠 [DataVault Guide](https://docs.flowstack.fun/datavault/)** - Persistent agent memory
+- **🍳 [Recipe Collection](https://docs.flowstack.fun/recipes/chatbot/)** - Real-world examples
 
 ## 🛠️ Development
 

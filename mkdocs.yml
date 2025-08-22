@@ -1,8 +1,8 @@
 site_name: FlowStack SDK
 site_description: From local agent to production in 5 minutes
 site_url: https://docs.flowstack.fun
-repo_url: https://github.com/flowstack/python-sdk
-repo_name: flowstack/python-sdk
+repo_url: https://github.com/flowstack-fun/flowstack
+repo_name: flowstack-fun/flowstack
 
 theme:
   name: material
@@ -34,8 +34,6 @@ theme:
     - content.tabs.link
     - toc.follow
     - toc.integrate
-  favicon: assets/favicon.ico
-  logo: assets/logo.svg
 
 plugins:
   - search:
