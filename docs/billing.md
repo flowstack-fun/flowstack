@@ -6,26 +6,26 @@ FlowStack uses simple, transparent pricing based on sessions. No complex token c
 
 ### Session-Based Pricing
 
-A **session** is one conversation with your agent, regardless of how many messages are exchanged:
+A **session** is one API call to FlowStack, regardless of conversation length or message count:
 
 !!! example "What Counts as One Session"
-    **Single Session Example:**
+    **Each API call = One session:**
     
-    - User: "Hello, can you help me?"
+    - User: "Hello, can you help me?" → **Session 1**
     - Agent: "Of course! What do you need help with?"
-    - User: "I need to analyze this data..."
+    - User: "I need to analyze this data..." → **Session 2**
     - Agent: "I'll analyze that data for you. Here are the results..."
-    - User: "Thanks! Can you also create a chart?"
+    - User: "Thanks! Can you also create a chart?" → **Session 3**
     - Agent: "Absolutely! Here's your chart..."
     
-    **6 messages = 1 session**
+    **3 user messages = 3 sessions**
 
 ### Session Lifecycle
 
-- **Session starts** with the first message from a user
-- **Session continues** with follow-up messages in the same conversation  
-- **Session ends** after 30 minutes of inactivity
-- **New session begins** with the next message after timeout
+- **Each API request** counts as one session
+- **No conversation memory** - each call is independent
+- **Chatbots naturally use more sessions** - each user message is a new session
+- **Maximum request duration**: 5 minutes (Lambda timeout)
 
 ## Pricing Tiers
 
@@ -42,11 +42,22 @@ A **session** is one conversation with your agent, regardless of how many messag
     - No managed Bedrock access
     - Community support
 
+-   :material-heart:{ .lg .middle } **Hobbyist**
+
+    ---
+
+    **$15/month**
+    
+    - 200 sessions/month
+    - Managed Bedrock included
+    - BYOK optional for cost savings
+    - Email support
+
 -   :material-rocket-launch:{ .lg .middle } **Starter**
 
     ---
 
-    **$29/month**
+    **$50/month**
     
     - 1,000 sessions/month
     - Managed Bedrock included
@@ -57,9 +68,9 @@ A **session** is one conversation with your agent, regardless of how many messag
 
     ---
 
-    **$99/month**
+    **$200/month**
     
-    - 10,000 sessions/month
+    - 5,000 sessions/month
     - Optimized AI pricing
     - Priority support
     - Advanced analytics
@@ -68,9 +79,9 @@ A **session** is one conversation with your agent, regardless of how many messag
 
     ---
 
-    **$499+/month**
+    **Custom pricing**
     
-    - 100,000+ sessions/month
+    - 25,000+ sessions/month
     - Volume pricing discounts
     - Custom infrastructure
     - Dedicated support
@@ -425,20 +436,22 @@ agent.vault.retrieve('data', key='...')
 
 ### How do conversations work?
 
-A conversation continues until there's 30 minutes of inactivity:
+Each API call is a separate session:
 
 ```python
-# Session 1 starts
+# Session 1
 agent.chat("Hello")  
 
-# 10 minutes later - still session 1
+# Session 2 (new API call)
 agent.chat("Can you help me?")
 
-# 5 minutes later - still session 1  
+# Session 3 (new API call)
 agent.chat("Thanks!")
 
-# 35 minutes later - session 2 starts
+# Session 4 (new API call)
 agent.chat("New question")
+
+# Result: 4 API calls = 4 sessions total
 ```
 
 ### What happens when I exceed limits?
