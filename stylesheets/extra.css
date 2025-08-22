@@ -1,0 +1,184 @@
+/* Custom styling for FlowStack documentation */
+
+/* Hero section improvements */
+.md-typeset h1 {
+  font-weight: 700;
+  color: var(--md-primary-fg-color);
+}
+
+/* Code block improvements */
+.md-typeset code {
+  background-color: var(--md-code-bg-color);
+  color: var(--md-code-fg-color);
+  padding: 0.1em 0.3em;
+  border-radius: 0.2em;
+  font-size: 0.85em;
+}
+
+/* Grid cards custom styling */
+.grid.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.grid.cards > .card {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grid.cards > .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Pricing tier cards */
+.pricing-card {
+  text-align: center;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--md-default-fg-color--lightest);
+  background: var(--md-default-bg-color);
+  transition: border-color 0.2s ease;
+}
+
+.pricing-card:hover {
+  border-color: var(--md-primary-fg-color);
+}
+
+.pricing-card .price {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--md-primary-fg-color);
+  margin: 0.5rem 0;
+}
+
+.pricing-card .features {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.pricing-card .features li {
+  padding: 0.25rem 0;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Admonitions custom styling */
+.md-typeset .admonition.tip {
+  border-color: #00c853;
+}
+
+.md-typeset .admonition.tip > .admonition-title {
+  background-color: rgba(0, 200, 83, 0.1);
+  border-color: #00c853;
+}
+
+/* Code annotation improvements */
+.md-typeset .md-annotation {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 600;
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: var(--md-default-bg-color--light);
+}
+
+/* Button improvements */
+.md-button {
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.2s ease;
+}
+
+.md-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.md-button--primary {
+  background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  border: none;
+}
+
+/* Navigation improvements */
+.md-nav__item .md-nav__link[data-md-level="1"] {
+  font-weight: 600;
+}
+
+/* Footer customization */
+.md-footer {
+  background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+}
+
+/* Responsive design improvements */
+@media screen and (max-width: 768px) {
+  .grid.cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .pricing-card {
+    margin: 1rem 0;
+  }
+}
+
+/* Dark mode specific adjustments */
+[data-md-color-scheme="slate"] {
+  --md-code-bg-color: #2e3440;
+  --md-code-fg-color: #d8dee9;
+}
+
+[data-md-color-scheme="slate"] .grid.cards > .card {
+  background: #3b4252;
+  border-color: #4c566a;
+}
+
+[data-md-color-scheme="slate"] .grid.cards > .card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Syntax highlighting improvements */
+.highlight .c { color: #6a9955; } /* Comments */
+.highlight .k { color: #569cd6; } /* Keywords */
+.highlight .s { color: #ce9178; } /* Strings */
+.highlight .n { color: #9cdcfe; } /* Names */
+.highlight .o { color: #d4d4d4; } /* Operators */
+
+/* Performance indicator for page load */
+.md-container {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
