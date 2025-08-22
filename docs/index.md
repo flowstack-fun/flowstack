@@ -30,9 +30,9 @@ Build your AI agent locally. Deploy with one command. Get a production endpoint 
 
     ---
 
-    Pay per session (conversation), not per token. No surprise bills.
+    Pay per session (API call), not per token. No surprise bills.
 
-    **Free**: 25 sessions/month | **Starter**: $29/1k sessions
+    **Free**: 25 sessions/month | **Hobbyist**: $15/200 sessions
 
 -   :material-cloud-upload:{ .lg .middle } **Auto-Scaling Infrastructure**
 
