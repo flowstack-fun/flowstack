@@ -1,230 +1,210 @@
-# FlowStack Python SDK
+# FlowStack SDK
 
-A clean, simple SDK for building AI agents with automatic billing management and multi-provider support.
+**From local agent to production in 5 minutes.**
 
-## Features
+FlowStack is the simplest way to build and deploy AI agents. Write Python tools, test locally, deploy instantly. No infrastructure, no DevOps, no complexity.
 
-- **Multiple AI Providers**: Support for Amazon Bedrock, OpenAI, Anthropic, and more
-- **Flexible Billing**: Use managed infrastructure or bring your own API keys
-- **Clean Interface**: Simple, intuitive API without billing complexity
-- **Automatic Usage Tracking**: Built-in session and cost management
-- **Type Safety**: Full type hints for better development experience
+## 🚀 Why FlowStack?
 
-## Quick Start
+**Think Vercel for AI agents.** You focus on agent logic, we handle everything else.
 
-### Installation
+- ✅ **Write tools in Python** - Natural @agent.tool decorator
+- ✅ **Deploy in one command** - `agent.deploy()` and you're live
+- ✅ **Instant production API** - Get HTTPS endpoints immediately  
+- ✅ **Built-in memory** - DataVault for persistent agent state
+- ✅ **Multi-provider support** - Switch between OpenAI, Claude, Llama seamlessly
+
+## 🎯 Perfect For
+
+- **🥷 Indie developers** - Build weekend projects that scale
+- **🚀 Startups** - Rapid prototyping without infrastructure overhead
+- **🤖 Automation enthusiasts** - Replace Zapier with custom AI logic
+
+## ⚡ Quick Start
+
+### 1. Install & Deploy in 5 Minutes
 
 ```bash
+# Install
 pip install flowstack
+
+# Get your API key from flowstack.fun
+export FLOWSTACK_API_KEY="fs_..."
 ```
 
-### Basic Usage
+### 2. Build Your First Agent
 
 ```python
-from flowstack import Agent, Models, Providers
+from flowstack import Agent
 
-# Create an agent (uses managed Bedrock by default)
-agent = Agent(
-    name="my-assistant",
-    api_key="fs_your_api_key_here",
-    model=Models.CLAUDE_35_SONNET
+# Create agent with tools
+agent = Agent("customer-helper")
+
+@agent.tool
+def lookup_order(order_id: str) -> dict:
+    """Look up customer order status"""
+    # Your business logic here
+    return {"status": "shipped", "tracking": "UPS123456789"}
+
+@agent.tool  
+def update_address(order_id: str, new_address: str) -> str:
+    """Update shipping address for an order"""
+    # Your business logic here
+    return f"Address updated for order {order_id}"
+
+# Test locally
+response = agent.chat("What's the status of order #12345?")
+print(response)  # Agent calls lookup_order() automatically
+```
+
+### 3. Deploy to Production
+
+```python
+# Deploy with one command
+endpoint = agent.deploy()
+print(f"🎉 Your agent is live at: {endpoint}")
+
+# Now available as REST API:
+# POST https://your-agent.flowstack.fun/chat
+# {"message": "What's the status of order #12345?"}
+```
+
+## 🧠 Persistent Memory with DataVault
+
+Agents remember context across conversations:
+
+```python
+@agent.tool
+def save_preference(user_id: str, preference: str) -> str:
+    """Save user preference"""
+    agent.vault.store('preferences', {
+        'user_id': user_id, 
+        'preference': preference
+    })
+    return "Preference saved!"
+
+@agent.tool
+def get_recommendations(user_id: str) -> list:
+    """Get personalized recommendations"""
+    prefs = agent.vault.query('preferences', {'user_id': user_id})
+    # Use preferences to customize recommendations
+    return ["item1", "item2", "item3"]
+```
+
+## 🔄 Multi-Provider Flexibility
+
+Switch AI providers without changing code:
+
+```python
+# Use managed Bedrock (included in pricing)
+agent = Agent("my-agent", model="claude-3-sonnet")
+
+# Or bring your own OpenAI key  
+agent = Agent("my-agent", 
+    provider="openai",
+    model="gpt-4o", 
+    byok={"api_key": "sk-your-key"}
 )
 
-# Simple chat
-response = agent.chat("Hello! How are you?")
-print(response)
-
-# Get usage statistics
-usage = agent.get_usage()
-print(f"Sessions used: {usage.sessions_used}/{usage.sessions_limit}")
+# Same tools, same deployment, different AI provider
 ```
 
-### Using Your Own API Keys (BYOK)
+## 📊 Real-World Examples
 
+### Slack Customer Support Bot
 ```python
-# Use your own OpenAI API key
-agent = Agent(
-    name="openai-agent",
-    api_key="fs_your_api_key_here",
-    provider=Providers.OPENAI,
-    model="gpt-4o",
-    byok={"api_key": "sk-your-openai-key"}
-)
+agent = Agent("support-bot")
 
-# Use your own AWS credentials for Bedrock
-agent = Agent(
-    name="bedrock-byok",
-    api_key="fs_your_api_key_here",
-    provider=Providers.BEDROCK,
-    model=Models.CLAUDE_35_SONNET,
-    byok={
-        "aws_access_key": "AKIA...",
-        "aws_secret_key": "your-secret",
-        "region": "us-west-2"
-    }
-)
+@agent.tool
+def search_knowledge_base(query: str) -> str:
+    # Search your docs/FAQ
+    return search_results
 
-# Use Anthropic direct API
-agent = Agent(
-    name="anthropic-direct",
-    api_key="fs_your_api_key_here", 
-    provider=Providers.ANTHROPIC,
-    model="claude-3-opus-20240229",
-    byok={"api_key": "sk-ant-your-key"}
-)
+@agent.tool  
+def create_ticket(issue: str, priority: str) -> str:
+    # Create Zendesk/Jira ticket
+    return ticket_id
+
+# Deploy and connect to Slack webhook
+endpoint = agent.deploy()
 ```
 
-### Advanced Usage
-
+### E-commerce Order Assistant
 ```python
-# Multi-turn conversation
-agent = Agent(
-    name="chat-agent",
-    api_key="fs_your_api_key_here"
-)
+agent = Agent("order-assistant")
 
-messages = [
-    {"role": "user", "content": "What is 2+2?"},
-    {"role": "assistant", "content": "2+2 equals 4."},
-    {"role": "user", "content": "What about 2+3?"}
-]
+@agent.tool
+def check_inventory(product_id: str) -> dict:
+    # Check your inventory system
+    return {"in_stock": True, "quantity": 50}
 
-response = agent.invoke(messages, temperature=0.7, max_tokens=100)
+@agent.tool
+def process_return(order_id: str, reason: str) -> str:
+    # Handle return logic
+    return "Return processed"
+
+# Deploy and embed in your website
+endpoint = agent.deploy()
 ```
 
-### Usage Monitoring
-
+### Content Creation Workflow  
 ```python
-# Check usage limits
-usage = agent.get_usage()
+agent = Agent("content-creator")
 
-if usage.is_near_limit:
-    print("Warning: Approaching usage limit!")
+@agent.tool
+def research_topic(topic: str) -> str:
+    # Research from multiple sources
+    return research_summary
 
-if not usage.can_make_requests:
-    print("Usage limit reached. Please upgrade your plan.")
+@agent.tool
+def publish_to_cms(title: str, content: str) -> str:
+    # Publish to WordPress/Contentful
+    return "Published successfully"
 
-# Get tier information
-tier_info = agent.get_tier_info()
-print(f"Current tier: {tier_info['current_tier']}")
-print(f"Can use managed models: {tier_info['can_use_managed']}")
+# Deploy and trigger via webhook
+endpoint = agent.deploy()
 ```
 
-## Supported Providers
+## 💰 Simple Pricing
 
-### Amazon Bedrock (Managed or BYOK)
-- **Anthropic**: Claude 3/3.5 (Haiku, Sonnet, Opus)
-- **Meta**: Llama 3/3.1/3.2 models
-- **Mistral**: 7B, Large, Mixtral
-- **Amazon**: Titan models
-- **Cohere**: Command R/R+
-- **AI21**: Jamba models
+**Session-based pricing.** One conversation = one session, regardless of message count.
 
-### BYOK-Only Providers
-- **OpenAI**: GPT-4, GPT-3.5
-- **Anthropic Direct**: Claude API
-- **Cohere**: Command models
-- **MistralAI**: Direct API
-- **Ollama**: Local models
-- **AWS SageMaker**: Custom endpoints
-- **Writer**: Enterprise models
+- **Free**: 25 sessions/month
+- **Starter**: $29/month, 1,000 sessions  
+- **Professional**: $99/month, 10,000 sessions
+- **Enterprise**: $499+/month, 100,000+ sessions
 
-## Error Handling
+## 📚 Learn More
 
-```python
-from flowstack import Agent, FlowStackError, QuotaExceededError
+- **📖 [Documentation](https://flowstack-fun.github.io/flowstack/)** - Complete guides and examples
+- **🚀 [5-Minute Tutorial](https://flowstack-fun.github.io/flowstack/quickstart/)** - Get started immediately
+- **🧠 [DataVault Guide](https://flowstack-fun.github.io/flowstack/datavault/)** - Persistent agent memory
+- **🍳 [Recipe Collection](https://flowstack-fun.github.io/flowstack/recipes/chatbot/)** - Real-world examples
 
-try:
-    agent = Agent(name="test", api_key="invalid")
-    response = agent.chat("Hello")
-except QuotaExceededError as e:
-    print(f"Quota exceeded: {e}")
-    print(f"Current usage: {e.details['current_usage']}")
-except FlowStackError as e:
-    print(f"FlowStack error: {e}")
-```
-
-## Billing
-
-### Free Tier
-- 25 agent sessions/month
-- BYOK required for all providers
-- No managed Bedrock access
-
-### Paid Tiers
-- **Starter ($29/month)**: 1,000 sessions, pay-as-you-go AI usage
-- **Professional ($99/month)**: 10,000 sessions, optimized AI pricing  
-- **Enterprise ($499+/month)**: 100K+ sessions, volume pricing
-
-All billing is handled automatically - you only see your usage and current charges.
-
-## Model Constants
-
-```python
-from flowstack import Models
-
-# Anthropic Claude (via Bedrock)
-Models.CLAUDE_35_SONNET
-Models.CLAUDE_35_HAIKU
-Models.CLAUDE_3_OPUS
-
-# Meta Llama (via Bedrock)
-Models.LLAMA_3_70B
-Models.LLAMA_31_405B
-
-# OpenAI (BYOK only)
-Models.GPT_4O
-Models.GPT_4_TURBO
-
-# And many more...
-```
-
-## Provider Constants
-
-```python
-from flowstack import Providers
-
-# Managed billing available
-Providers.BEDROCK
-
-# BYOK only
-Providers.OPENAI
-Providers.ANTHROPIC
-Providers.COHERE
-Providers.MISTRAL
-Providers.OLLAMA
-```
-
-## Development
-
-### Local Setup
+## 🛠️ Development
 
 ```bash
-git clone https://github.com/flowstack/python-sdk
-cd python-sdk
-pip install -e ".[dev]"
-```
+# Local development
+git clone https://github.com/flowstack-fun/flowstack.git
+cd flowstack
+pip install -e .
 
-### Running Tests
-
-```bash
+# Run tests  
 pytest tests/
+
+# Build docs
+mkdocs serve
 ```
 
-### Code Formatting
+## 🤝 Support
 
-```bash
-black flowstack/
-flake8 flowstack/
-```
+- **🐛 Issues**: [GitHub Issues](https://github.com/flowstack-fun/flowstack/issues)
+- **💬 Community**: [Discord](https://discord.gg/flowstack) 
+- **📧 Email**: [support@flowstack.fun](mailto:support@flowstack.fun)
+- **🐦 Updates**: [@flowstack](https://twitter.com/flowstack)
 
-## Support
+---
 
-- 📖 [Documentation](https://docs.flowstack.ai)
-- 🐛 [Bug Reports](https://github.com/flowstack/python-sdk/issues)  
-- 💬 [Discord Community](https://discord.gg/flowstack)
-- 📧 [Email Support](mailto:support@flowstack.ai)
+**Built for developers who ship fast.** 🚢
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
+*Stop building infrastructure. Start building agents.*
