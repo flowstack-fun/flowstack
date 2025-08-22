@@ -167,12 +167,13 @@ endpoint = agent.deploy()
 
 ## 💰 Simple Pricing
 
-**Session-based pricing.** One conversation = one session, regardless of message count.
+**Session-based pricing.** One API call = one session, regardless of message count.
 
 - **Free**: 25 sessions/month
-- **Starter**: $29/month, 1,000 sessions  
-- **Professional**: $99/month, 10,000 sessions
-- **Enterprise**: $499+/month, 100,000+ sessions
+- **Hobbyist**: $15/month, 200 sessions  
+- **Starter**: $50/month, 1,000 sessions
+- **Professional**: $200/month, 5,000 sessions
+- **Enterprise**: Custom pricing, 25,000+ sessions
 
 ## 📚 Learn More
 

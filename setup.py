@@ -11,7 +11,7 @@ setup(
     description="AI Agent Platform SDK with built-in billing management",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/flowstack/python-sdk",
+    url="https://github.com/flowstack-fun/flowstack",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -38,15 +38,10 @@ setup(
             "flake8>=3.8",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "flowstack=flowstack.cli:main",
-        ],
-    },
     keywords="ai, agents, llm, openai, anthropic, bedrock, aws",
     project_urls={
-        "Bug Reports": "https://github.com/flowstack/python-sdk/issues",
-        "Source": "https://github.com/flowstack/python-sdk",
-        "Documentation": "https://docs.flowstack.ai",
+        "Bug Reports": "https://github.com/flowstack-fun/flowstack/issues",
+        "Source": "https://github.com/flowstack-fun/flowstack",
+        "Documentation": "https://docs.flowstack.fun",
     },
 )
