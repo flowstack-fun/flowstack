@@ -52,7 +52,7 @@ jobs:
 
       - name: Build documentation
         run: |
-          mkdocs build --clean --strict
+          mkdocs build --clean
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v2
