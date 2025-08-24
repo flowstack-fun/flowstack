@@ -160,25 +160,66 @@ messages = [
 response = agent.invoke(messages)
 ```
 
-#### `deploy() -> str`
+#### `deploy() -> dict`
 
-Deploy your agent to production.
+Deploy your agent to FlowStack infrastructure.
 
 !!! note "MCP Deployment"
     During deployment, FlowStack extracts your tools' source code and configures them for secure MCP (Model Context Protocol) execution in isolated containers.
 
-**Returns:** `str` - Production endpoint URL
+**Returns:** `dict` - Deployment information containing:
+- `deployment_id`: Unique deployment identifier
+- `namespace`: Agent namespace for invocation
+- `status`: Deployment status
+- `message`: Status message
 
 **Example:**
 ```python
-endpoint = agent.deploy()
-print(f"Agent deployed at: {endpoint}")
-# Output: "Agent deployed at: https://api.flowstack.fun/agents/my-agent"
+result = agent.deploy()
+print(f"Deployment ID: {result['deployment_id']}")
+print(f"Namespace: {result['namespace']}")
+# Output: "Deployment ID: dep_abc123"
+# Output: "Namespace: ns_cust456_789def"
 ```
 
 **Common Errors:**
 - `"Cannot extract source code"`: Tools must be in .py files, not REPL/Jupyter
 - `"Tool validation failed"`: Ensure tools have proper docstrings and type hints
+
+#### `from_yaml(yaml_path, api_key, **kwargs)` (classmethod)
+
+Create an Agent from a YAML configuration file.
+
+**Parameters:**
+- `yaml_path` (str): Path to agent.yaml file
+- `api_key` (str): FlowStack API key
+- `**kwargs`: Additional parameters to override
+
+**Returns:** `Agent` - Configured Agent instance
+
+**Example:**
+```python
+agent = Agent.from_yaml("agent.yaml", api_key="fs_...")
+result = agent.deploy()
+```
+
+#### `add_tool(tool)`
+
+Add a tool function to the agent.
+
+**Parameters:**
+- `tool`: Either a function or path to a Python file
+
+**Example:**
+```python
+from flowstack import tool
+
+@tool
+def my_function():
+    return "result"
+
+agent.add_tool(my_function)
+```
 
 #### `get_usage() -> UsageStats`
 
@@ -276,18 +317,26 @@ Access to DataVault for persistent storage.
 **Example:**
 ```python
 # Store data
-agent.vault.store('users', {'name': 'Alice', 'age': 30})
+vault.store('users', {'name': 'Alice', 'age': 30})
 
 # Retrieve data
-user = agent.vault.retrieve('users', key='user_123')
+user = vault.retrieve('users', key='user_123')
 
 # Query data
-adults = agent.vault.query('users', {'age': {'$gte': 18}})
+adults = vault.query('users', {'age': {'$gte': 18}})
 ```
 
 ## DataVault
 
 The DataVault provides persistent storage for your agents.
+
+### Initialization
+
+```python
+from flowstack import DataVault
+
+vault = DataVault(api_key="fs_your_api_key")
+```
 
 ### Core Methods
 
@@ -306,14 +355,14 @@ Store data in a collection.
 **Example:**
 ```python
 # Auto-generated key
-key = agent.vault.store('products', {
+key = vault.store('products', {
     'name': 'Laptop',
     'price': 999.99,
     'category': 'electronics'
 })
 
 # Custom key
-agent.vault.store('products', {
+vault.store('products', {
     'name': 'Mouse',
     'price': 29.99
 }, key='mouse-001')
@@ -334,13 +383,13 @@ Retrieve data from a collection.
 **Example:**
 ```python
 # Get specific item
-product = agent.vault.retrieve('products', key='mouse-001')
+product = vault.retrieve('products', key='mouse-001')
 
 # Get all items in collection
-all_products = agent.vault.retrieve('products')
+all_products = vault.retrieve('products')
 
 # Query with filter
-expensive_items = agent.vault.retrieve('products', filter={
+expensive_items = vault.retrieve('products', filter={
     'price': {'$gte': 500}
 })
 ```
@@ -359,17 +408,17 @@ Advanced querying with MongoDB-style filters.
 **Example:**
 ```python
 # Basic query
-results = agent.vault.query('users', {'age': {'$gte': 18}})
+results = vault.query('users', {'age': {'$gte': 18}})
 
 # Complex query with multiple conditions
-active_admins = agent.vault.query('users', {
+active_admins = vault.query('users', {
     'role': 'admin',
     'active': True,
     'last_login': {'$gte': '2024-01-01'}
 })
 
 # Complex query
-power_users = agent.vault.query('users', {
+power_users = vault.query('users', {
     '$or': [
         {'premium': True},
         {'login_count': {'$gte': 100}}
@@ -391,7 +440,7 @@ Update an existing item.
 
 **Example:**
 ```python
-success = agent.vault.update('products', 'mouse-001', {
+success = vault.update('products', 'mouse-001', {
     'price': 24.99,
     'sale': True
 })
@@ -410,7 +459,7 @@ Delete an item from a collection.
 
 **Example:**
 ```python
-deleted = agent.vault.delete('products', 'mouse-001')
+deleted = vault.delete('products', 'mouse-001')
 ```
 
 #### `count(collection, filter=None) -> int`
@@ -426,8 +475,8 @@ Count items in a collection.
 
 **Example:**
 ```python
-total_users = agent.vault.count('users')
-active_users = agent.vault.count('users', {'active': True})
+total_users = vault.count('users')
+active_users = vault.count('users', {'active': True})
 ```
 
 #### `list_collections() -> list`
@@ -438,7 +487,7 @@ List all collections in your agent's namespace.
 
 **Example:**
 ```python
-collections = agent.vault.list_collections()
+collections = vault.list_collections()
 print(f"Available collections: {collections}")
 ```
 
@@ -458,7 +507,7 @@ Clear all items from a collection.
 **Example:**
 ```python
 # Clear temporary cache
-agent.vault.clear('temp_cache')
+vault.clear('temp_cache')
 ```
 
 ## UsageStats Class

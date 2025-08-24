@@ -27,22 +27,37 @@ pip install flowstack
 ## Step 3: Build Your First Agent
 
 !!! important "File Requirement"
-    Tools must be defined in a `.py` file (not in REPL, Jupyter, or command line).
+    Tools must be defined in `.py` files (not in REPL, Jupyter, or command line).
     FlowStack needs to extract source code for secure MCP execution.
 
-Create a file called `my_agent.py`:
+### Method 1: YAML Configuration (Recommended)
 
-```python title="my_agent.py"
-from flowstack import Agent
+Create a project structure:
+```
+my-agent/
+├── agent.yaml
+└── tools/
+    └── orders.py
+```
 
-# Initialize your agent
-agent = Agent(
-    name="customer-helper",
-    api_key="fs_your_api_key_here"  # Replace with your actual key
-)
+Create `agent.yaml`:
+```yaml title="agent.yaml"
+name: customer-helper
+instructions: |
+  You are a helpful customer service agent.
+  Help customers with their orders and feedback.
+model: claude-3-sonnet
+provider: bedrock
+temperature: 0.7
+tools:
+  lookup_order:
+    description: Look up order status
+  store_feedback:
+    description: Store customer feedback
+```
 
-# Add a tool - this is what makes your agent useful
-@agent.tool
+Create `tools/orders.py`:
+```python title="tools/orders.py"
 def lookup_order(order_id: str) -> dict:
     """Look up order status by ID"""
     # In a real app, this would query your database
@@ -59,51 +74,61 @@ def lookup_order(order_id: str) -> dict:
     else:
         return {"error": f"Order {order_id} not found"}
 
-@agent.tool  
 def store_feedback(order_id: str, feedback: str) -> dict:
     """Store customer feedback for an order"""
-    # Use DataVault to persist feedback
+    # In production, you'd store this in a database
     feedback_data = {
         "order_id": order_id,
         "feedback": feedback,
         "timestamp": "2024-01-15T10:30:00Z"
     }
     
-    # Store in DataVault (built-in persistence)
-    feedback_key = agent.vault.store('feedback', feedback_data)
-    return {"message": "Feedback saved", "id": feedback_key}
+    # For now, just return success
+    return {"message": "Feedback saved", "data": feedback_data}
 
-# Test your agent locally first
-if __name__ == "__main__":
-    print("🤖 Testing customer helper agent...")
-    
-    # Test order lookup
-    response1 = agent.chat("What's the status of order 12345?")
-    print(f"Order Status: {response1}")
-    
-    # Test feedback storage
-    response2 = agent.chat("I want to leave feedback for order 12345: Great service!")
-    print(f"Feedback: {response2}")
-    
-    print("\n✅ Local testing complete!")
+```
+
+### Method 2: Python Code with Decorator
+
+Create `my_agent.py`:
+```python title="my_agent.py"
+from flowstack import Agent, tool
+
+agent = Agent(
+    name="customer-helper",
+    api_key="fs_your_api_key_here",
+    instructions="You are a helpful customer service agent."
+)
+
+@tool
+def lookup_order(order_id: str) -> dict:
+    """Look up order status by ID"""
+    orders = {
+        "12345": {"status": "shipped", "tracking": "UPS123456789"},
+        "67890": {"status": "processing", "eta": "2-3 days"}
+    }
+    return orders.get(order_id, {"error": "Order not found"})
+
+# Add tool to agent
+agent.add_tool(lookup_order)
 ```
 
 ## Step 4: Test Locally
 
-Run your agent to make sure it works:
+### For YAML approach:
+```python title="test_agent.py"
+from flowstack import Agent
 
+agent = Agent.from_yaml("agent.yaml", api_key="fs_your_api_key_here")
+
+# Test locally
+response = agent.chat("What's the status of order 12345?")
+print(response)
+```
+
+### For code approach:
 ```bash
 python my_agent.py
-```
-
-You should see output like:
-
-```
-🤖 Testing customer helper agent...
-Order Status: I found order 12345! It has shipped with tracking number UPS123456789 and should arrive tomorrow.
-Feedback: Thank you for your feedback! I've saved your comment about great service for order 12345.
-
-✅ Local testing complete!
 ```
 
 !!! success "It Works!"
@@ -117,65 +142,56 @@ Feedback: Thank you for your feedback! I've saved your comment about great servi
 
 ## Step 5: Deploy to Production
 
-When you deploy, FlowStack extracts your tool source code and configures them for secure MCP execution.
+FlowStack extracts your tool source code and configures them for secure MCP execution.
 
-Add this to the bottom of your `my_agent.py` file:
+### Deploy with YAML:
+```python title="deploy.py"
+from flowstack import Agent
 
-```python title="my_agent.py" hl_lines="3-6"
-# ... your existing code above ...
+agent = Agent.from_yaml("agent.yaml", api_key="fs_your_api_key_here")
 
-# Deploy to production
-if __name__ == "__main__":
-    # Test locally first (existing code)
-    # ... 
-    
-    # Deploy to production
-    print("\n🚀 Deploying to production...")
-    endpoint = agent.deploy()
-    print(f"✅ Agent deployed successfully!")
-    print(f"Production endpoint: {endpoint}")
-    print(f"Chat endpoint: {endpoint}/chat")
+print("🚀 Deploying to production...")
+result = agent.deploy()
+print(f"✅ Deployment successful!")
+print(f"Deployment ID: {result['deployment_id']}")
+print(f"Namespace: {result['namespace']}")
 ```
 
-Run the deployment:
-
-```bash
-python my_agent.py
+### Deploy with code:
+```python
+# Add to your my_agent.py
+result = agent.deploy()
+print(f"Deployed with ID: {result['deployment_id']}")
 ```
 
 You'll see:
 
 ```
 🚀 Deploying to production...
-✅ Agent deployed successfully!
-Production endpoint: https://api.flowstack.fun/agents/customer-helper
-Chat endpoint: https://api.flowstack.fun/agents/customer-helper/chat
+✅ Deployment successful!
+Deployment ID: dep_abc123xyz
+Namespace: ns_cust456_789def
 ```
 
 ## Step 6: Test Your Live Agent
 
-Your agent is now running in production! Test it with curl:
+Your agent is now deployed! To invoke it, use the namespace returned from deployment:
 
-=== "Test Order Lookup"
+```python
+# After deployment, you can invoke your agent
+response = agent.chat("Check the status of order 67890")
+print(response)
+```
 
-    ```bash
-    curl -X POST https://api.flowstack.fun/agents/customer-helper/chat \
-      -H "Content-Type: application/json" \
-      -H "X-API-Key: fs_your_api_key_here" \
-      -d '{
-        "message": "Check the status of order 67890"
-      }'
-    ```
+Or via API:
 
-=== "Test Feedback Storage"
-
-    ```bash
-    curl -X POST https://api.flowstack.fun/agents/customer-helper/chat \
-      -H "Content-Type: application/json" \
-      -H "X-API-Key: fs_your_api_key_here" \
-      -d '{
-        "message": "I want to give feedback for order 12345: Fast delivery!"
-      }'
+```bash
+curl -X POST https://api.flowstack.fun/agents/{namespace}/invoke \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: fs_your_api_key_here" \
+  -d '{
+    "message": "Check the status of order 67890"
+  }'
     ```
 
 === "Python Client"

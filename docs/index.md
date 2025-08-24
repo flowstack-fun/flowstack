@@ -13,7 +13,7 @@ Build your AI agent locally. Deploy with one command. Get a production endpoint 
     Skip weeks of infrastructure setup. Build locally, deploy instantly.
 
     ```python
-    agent.deploy()  # That's it
+    result = agent.deploy()  # That's it
     ```
 
 -   :material-database:{ .lg .middle } **Built-in Persistence**
@@ -23,7 +23,7 @@ Build your AI agent locally. Deploy with one command. Get a production endpoint 
     DataVault gives every agent MongoDB-backed storage with zero configuration.
 
     ```python
-    agent.vault.store('users', data)
+    vault.store('users', data)
     ```
 
 -   :material-cash:{ .lg .middle } **Simple Billing**
@@ -61,23 +61,22 @@ Deploying it to production takes **10 days** of DevOps hell:
 ```python
 from flowstack import Agent
 
-# 1. Build your agent locally
-agent = Agent("customer-helper", api_key="fs_...")
-
-@agent.tool
-def lookup_order(order_id: str):
-    """Check order status in your system"""
-    # Your business logic here
-    return {"status": "shipped", "tracking": "UPS123456"}
+# 1. Build your agent (YAML or code)
+agent = Agent.from_yaml("agent.yaml", api_key="fs_...")
+# Or define in code with instructions
+agent = Agent(
+    name="customer-helper",
+    api_key="fs_...",
+    instructions="You are a helpful support agent"
+)
 
 # 2. Test locally (works on your machine)
 response = agent.chat("What's the status of order 12345?")
 print(response)
 
 # 3. Deploy to production (one command)
-endpoint = agent.deploy()
-print(f"Live at: {endpoint}")
-# → https://api.flowstack.fun/agents/customer-helper
+result = agent.deploy()
+print(f"Deployed: {result['namespace']}")
 
 # 4. Your agent is now live and accessible via API
 ```

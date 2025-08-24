@@ -74,39 +74,28 @@ When you call `agent.deploy()`, FlowStack automatically:
 
 ## Deployment Environments
 
-### Development Environment
+### Deployment Infrastructure
 
-Perfect for testing and iteration:
+Your agent runs on FlowStack's managed infrastructure:
 
+**Features:**
+- ✅ Automatic scaling based on traffic
+- ✅ Global edge caching for low latency
+- ✅ Built-in monitoring and alerting
+- ✅ Secure MCP tool execution
+- ✅ Isolated namespaces per customer
+
+**Response Details:**
 ```python
-# Deploy to dev environment
-dev_endpoint = agent.deploy(environment="dev")
-# → https://api.flowstack.fun/agents/my-agent-dev
+result = agent.deploy()
+
+# Access deployment details
+deployment_id = result['deployment_id']
+namespace = result['namespace']
+
+# Your agent is now available at:
+# POST https://api.flowstack.fun/agents/{namespace}/invoke
 ```
-
-**Development Features:**
-- ✅ Faster deployment (30-60 seconds)
-- ✅ More verbose logging and debugging
-- ✅ Higher error tolerance
-- ✅ Separate DataVault namespace
-- ✅ Cost-optimized for testing
-
-### Production Environment
-
-Optimized for real users:
-
-```python
-# Deploy to production
-prod_endpoint = agent.deploy(environment="prod")
-# → https://api.flowstack.fun/agents/my-agent
-```
-
-**Production Features:**
-- ✅ Enhanced performance and reliability
-- ✅ Advanced monitoring and alerting
-- ✅ Automatic scaling and load balancing
-- ✅ Production SLA guarantees
-- ✅ Enhanced security and isolation
 
 ## What You Get
 
@@ -179,23 +168,24 @@ endpoint = agent.deploy(
 )
 ```
 
-### Deployment with Custom Domain
+### Invoking Your Deployed Agent
 
 ```python
-# Deploy with custom domain (enterprise feature)
-endpoint = agent.deploy(
-    environment="prod",
-    custom_domain="my-agent.mycompany.com"
-)
+# After deployment, you can invoke your agent
+result = agent.deploy()
+namespace = result['namespace']
+
+# Use the agent
+response = agent.chat("Hello!")
 ```
 
 ## API Endpoints
 
 After deployment, your agent provides several endpoints:
 
-### Chat Endpoint
+### Invoke Endpoint
 
-**POST** `/agents/{agent-name}/chat`
+**POST** `/agents/{namespace}/invoke`
 
 Send messages to your agent:
 

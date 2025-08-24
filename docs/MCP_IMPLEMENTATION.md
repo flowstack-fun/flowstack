@@ -2,24 +2,24 @@
 
 ## Overview
 
-FlowStack now supports **multi-language tools** through MCP (Model Context Protocol) integration, enabling developers to write tools in both **Python** and **JavaScript** within the same agent.
+FlowStack uses **MCP (Model Context Protocol)** for secure, isolated tool execution. Tools are extracted as source code and executed in containerized environments.
 
-## What's New
+## Key Features
 
-### 🚀 Multi-Language Support
-- **Python tools**: Continue using your existing Python functions
-- **JavaScript tools**: Write tools in JavaScript/TypeScript
-- **Mixed workflows**: Combine tools from both languages in conversations
+### 🚀 Source Code Extraction
+- **Python tools**: Define tools as functions in .py files
+- **Source extraction**: Uses `inspect.getsource()` instead of serialization
+- **YAML configuration**: Define agents and tools declaratively
 
 ### ⚡ MCP Architecture
-- **Container-based execution**: Reliable, scalable tool execution
-- **Language isolation**: Python and JavaScript tools run in separate containers
-- **Automatic routing**: Tools are automatically routed to the correct runtime
+- **Container-based execution**: Reliable, scalable tool execution in ECS Fargate
+- **Isolated execution**: Each tool runs in a secure container
+- **Automatic routing**: Tools are automatically routed to MCP runtime
 
-### 🔄 Seamless Migration
-- **Backward compatibility**: Existing CloudPickle tools continue to work
-- **Gradual migration**: Migrate tools at your own pace
-- **Rollback support**: Safe migration with rollback capabilities
+### 🔄 Development Workflow
+- **Local development**: Write and test tools as normal Python functions
+- **Deployment**: FlowStack extracts source and deploys to infrastructure
+- **No serialization**: Tools are stored as source code, not pickled objects
 
 ## Architecture Diagram
 
@@ -27,18 +27,26 @@ FlowStack now supports **multi-language tools** through MCP (Model Context Proto
 ┌─────────────────────────────────────────────────────────────┐
 │                        FlowStack Agent                       │
 ├─────────────────────────────────────────────────────────────┤
-│  Python SDK              │          JavaScript SDK          │
-│  ┌─────────────────┐    │    ┌─────────────────────────┐   │
-│  │ @agent.tool     │    │    │ agent.tool('name', {    │   │
-│  │ def py_func():  │    │    │   handler: jsFunc       │   │
-│  │   return "hi"   │    │    │ })                      │   │
-│  └─────────────────┘    │    └─────────────────────────┘   │
+│                         Python SDK                           │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ from flowstack import tool                          │   │
+│  │                                                     │   │
+│  │ @tool                                               │   │
+│  │ def my_function():                                  │   │
+│  │     return "result"                                 │   │
+│  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                                    │
                                    ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Provider Router Function                   │
-│                  (routes to MCP if tools)                   │
+│                   Deployment Manager                         │
+│              (extracts source, stores in DynamoDB)          │
+└─────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Agent Executor Lambda                      │
+│          (creates MCP proxy functions for tools)            │
 └─────────────────────────────────────────────────────────────┘
                                    │
                                    ▼
@@ -47,574 +55,220 @@ FlowStack now supports **multi-language tools** through MCP (Model Context Proto
 │         (manages container tasks and routes execution)       │
 └─────────────────────────────────────────────────────────────┘
                                    │
-                ┌─────────────────────────────────┐
-                │                                 │
-                ▼                                 ▼
-┌─────────────────────────┐           ┌─────────────────────────┐
-│   Python MCP Server     │           │    Node.js MCP Server   │
-│    (Container Task)     │           │    (Container Task)    │
-│                         │           │                         │
-│  ┌─────────────────┐   │           │  ┌─────────────────┐    │
-│  │   DataVault     │   │           │  │   DataVault     │    │
-│  │   Context       │   │           │  │   Context       │    │
-│  │   Injection     │   │           │  │   Injection     │    │
-│  └─────────────────┘   │           │  └─────────────────┘    │
-└─────────────────────────┘           └─────────────────────────┘
+                                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     ECS Fargate Tasks                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │            Python MCP Server Container              │   │
+│  │         (executes Python tools in isolation)        │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Key Components
+## Tool Implementation Examples
 
-### 1. MCP Orchestrator
-- **Location**: `lambda/mcp-orchestrator/`
-- **Purpose**: Routes tool execution to appropriate container tasks
-- **Features**: Task pooling, auto-scaling, health monitoring
-
-### 2. MCP Servers
-- **Python Server**: `mcp-servers/python/server.py`
-- **Node.js Server**: `mcp-servers/node/server.js`
-- **Execution**: Container tasks with DataVault access
-
-### 3. Updated SDKs
-- **Python SDK**: Enhanced with `language` parameter
-- **JavaScript SDK**: New TypeScript SDK with dual-language support
-
-### 4. Migration Tools
-- **Migration Script**: `migration/cloudpickle_to_mcp.py`
-- **Validation**: `migration/validate_mcp_migration.py`
-- **Rollback**: Built-in rollback capabilities
-
-## Quick Start
-
-### Python SDK (Enhanced)
+### Python Tools with @tool Decorator
 
 ```python
-from flowstack.agent import Agent, Providers, Models
+from flowstack import Agent, tool
 
 agent = Agent(
-    name='dual-language-agent',
-    api_key='your-api-key',
-    provider=Providers.BEDROCK,
-    model=Models.CLAUDE_35_SONNET_BEDROCK
+    name="data-processor",
+    api_key="your-api-key",
+    instructions="You are a data analysis assistant"
 )
 
-# Python tool (traditional)
-@agent.tool
+# Define tool with decorator
+@tool
 def analyze_data(data: list) -> dict:
-    \"\"\"Analyze numerical data\"\"\"
+    """Analyze numerical data"""
     return {
         'count': len(data),
-        'average': sum(data) / len(data),
-        'max': max(data),
-        'min': min(data)
+        'average': sum(data) / len(data) if data else 0,
+        'max': max(data) if data else None,
+        'min': min(data) if data else None
     }
 
-# JavaScript tool from Python SDK
-@agent.tool(language='javascript', source_code='''
-function formatCurrency(amount, currency = 'USD') {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency
-    }).format(amount);
-}
-''')
-def format_currency():
-    \"\"\"Format amount as currency\"\"\"
-    pass
+# Add tool to agent
+agent.add_tool(analyze_data)
 
-# Use both tools in conversation
-response = agent.chat(\"\"\"
-Analyze this data [100, 200, 300, 400, 500] and then 
-format the average as USD currency.
-\"\"\")
+# Deploy agent
+result = agent.deploy()
+print(f"Deployed: {result['namespace']}")
 ```
 
-### JavaScript SDK (New)
+### Tools in Separate Files (Recommended)
 
-```javascript
-const { Agent, Providers, Models } = require('@flowstack/sdk');
-
-const agent = new Agent({
-    name: 'js-agent',
-    apiKey: 'your-api-key'
-});
-
-// JavaScript tool (native)
-agent.tool('processOrder', {
-    description: 'Process e-commerce order',
-    handler: (order) => {
-        return {
-            orderId: order.id,
-            total: order.items.reduce((sum, item) => sum + item.price, 0),
-            processedAt: new Date().toISOString()
-        };
-    }
-});
-
-// Python tool from JavaScript SDK  
-agent.tool('calculateShipping', {
-    description: 'Calculate shipping costs using Python',
-    language: 'python',
-    code: `
-def calculateShipping(weight, distance):
-    base_rate = 5.99
-    weight_rate = weight * 0.50
-    distance_rate = distance * 0.02
-    return base_rate + weight_rate + distance_rate
-    `
-});
-
-// Use mixed tools
-const response = await agent.chat(
-    'Process an order with 3 items at $10 each, then calculate shipping for 2lbs over 100 miles'
-);
+Project structure:
+```
+my-agent/
+├── agent.yaml
+└── tools/
+    ├── math_tools.py
+    └── data_tools.py
 ```
 
-## Tool Development Guide
+`agent.yaml`:
+```yaml
+name: data-processor
+instructions: |
+  You are a data analysis assistant.
+  Help users analyze and process data.
+model: claude-3-sonnet
+temperature: 0.7
+tools:
+  analyze_data:
+    description: Analyze numerical data
+  calculate_statistics:
+    description: Calculate advanced statistics
+```
 
-### Python Tools
-
-#### Basic Python Tool
+`tools/data_tools.py`:
 ```python
-@agent.tool
-def simple_calculator(operation: str, a: float, b: float) -> dict:
-    \"\"\"Perform basic math operations\"\"\"
-    operations = {
-        'add': a + b,
-        'subtract': a - b,
-        'multiply': a * b,
-        'divide': a / b if b != 0 else 'Error: Division by zero'
-    }
-    
+def analyze_data(data: list) -> dict:
+    """Analyze numerical data"""
     return {
-        'operation': operation,
-        'operands': [a, b],
-        'result': operations.get(operation, 'Unknown operation')
+        'count': len(data),
+        'average': sum(data) / len(data) if data else 0,
+        'max': max(data) if data else None,
+        'min': min(data) if data else None
+    }
+
+def calculate_statistics(data: list) -> dict:
+    """Calculate advanced statistics"""
+    import statistics
+    return {
+        'mean': statistics.mean(data),
+        'median': statistics.median(data),
+        'stdev': statistics.stdev(data) if len(data) > 1 else 0
     }
 ```
 
-#### Python Tool with DataVault
+Deploy:
 ```python
-@agent.tool
-def save_user_preference(key: str, value: any) -> dict:
-    \"\"\"Save user preference to persistent storage\"\"\"
-    
-    # DataVault is automatically injected as 'vault'
-    success = vault.set(f"user_pref_{key}", {
+from flowstack import Agent
+
+agent = Agent.from_yaml("agent.yaml", api_key="your-api-key")
+result = agent.deploy()
+```
+
+## MCP Execution Flow
+
+1. **Tool Definition**: Developer defines tools as Python functions
+2. **Source Extraction**: SDK extracts source using `inspect.getsource()`
+3. **Deployment**: Source code stored in DynamoDB with agent config
+4. **Agent Invocation**: When agent needs a tool, creates MCP proxy
+5. **MCP Orchestration**: Proxy calls MCP orchestrator Lambda
+6. **Container Execution**: Tool executes in isolated ECS container
+7. **Result Return**: Result passed back through chain to agent
+
+## DataVault Integration
+
+Tools can access DataVault for persistent storage:
+
+```python
+from flowstack import tool, DataVault
+
+# Initialize DataVault
+vault = DataVault(api_key="your-api-key")
+
+@tool
+def save_user_preference(key: str, value: str) -> dict:
+    """Save user preference to DataVault"""
+    success = vault.store('preferences', {
+        'key': key,
         'value': value,
-        'saved_at': time.time(),
-        'version': 1
+        'timestamp': '2024-01-01T00:00:00Z'
     })
     
     return {
-        'success': success,
-        'key': key,
-        'message': f"Saved preference: {key}"
+        'saved': success,
+        'message': f"Preference {key} saved"
     }
-```
 
-#### Python Tool with External APIs
-```python
-@agent.tool
-def fetch_weather(city: str) -> dict:
-    \"\"\"Fetch weather data for a city\"\"\"
-    import requests
+@tool
+def get_user_preference(key: str) -> dict:
+    """Retrieve user preference from DataVault"""
+    prefs = vault.retrieve('preferences', filter={'key': key})
     
-    try:
-        # Mock weather API (replace with real API)
-        response = requests.get(f"https://api.weather.com/v1/current?city={city}")
-        data = response.json()
-        
-        return {
-            'city': city,
-            'temperature': data.get('temperature'),
-            'condition': data.get('condition'),
-            'humidity': data.get('humidity'),
-            'fetched_at': time.time()
-        }
-    except Exception as e:
-        return {
-            'error': str(e),
-            'city': city
-        }
+    if prefs:
+        return prefs[0]
+    else:
+        return {'error': 'Preference not found'}
 ```
 
-### JavaScript Tools
+## Best Practices
 
-#### Basic JavaScript Tool
-```javascript
-agent.tool('validateEmail', {
-    description: 'Validate email address format',
-    handler: (email) => {
-        const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
-        const isValid = emailRegex.test(email);
-        
-        return {
-            email: email,
-            valid: isValid,
-            message: isValid ? 'Valid email format' : 'Invalid email format'
-        };
-    }
-});
-```
+### Tool Design
+- **Single Responsibility**: Each tool should do one thing well
+- **Clear Documentation**: Use descriptive docstrings
+- **Type Hints**: Always include type hints for parameters
+- **Error Handling**: Handle errors gracefully within tools
+- **Stateless**: Tools should be stateless (use DataVault for state)
 
-#### JavaScript Tool with Async Operations
-```javascript
-agent.tool('fetchApiData', {
-    description: 'Fetch data from API endpoint',
-    handler: async (url, options = {}) => {
-        try {
-            const response = await fetch(url, {
-                method: options.method || 'GET',
-                headers: {
-                    'User-Agent': 'FlowStack-Agent/1.0',
-                    ...options.headers
-                },
-                timeout: 10000
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            
-            return {
-                url: url,
-                status: response.status,
-                data: data,
-                fetchedAt: new Date().toISOString()
-            };
-            
-        } catch (error) {
-            return {
-                url: url,
-                error: error.message,
-                fetchedAt: new Date().toISOString()
-            };
-        }
-    }
-});
-```
+### Security Considerations
+- **No Secrets in Code**: Never hardcode API keys or secrets
+- **Input Validation**: Validate all tool inputs
+- **Safe Operations**: Avoid operations that could harm the system
+- **Isolated Execution**: Tools run in isolated containers
 
-#### JavaScript Tool with DataVault
-```javascript
-agent.tool('trackUserAction', {
-    description: 'Track user action in analytics',
-    handler: async (action, metadata = {}) => {
-        const vault = agent.getVault();
-        
-        try {
-            // Get existing actions
-            const existing = await vault.get('user_actions') || [];
-            
-            // Add new action
-            const newAction = {
-                action: action,
-                metadata: metadata,
-                timestamp: new Date().toISOString(),
-                id: Math.random().toString(36).substr(2, 9)
-            };
-            
-            existing.push(newAction);
-            
-            // Save back to vault
-            const success = await vault.set('user_actions', existing);
-            
-            return {
-                success: success,
-                actionId: newAction.id,
-                totalActions: existing.length
-            };
-            
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-});
-```
-
-## Advanced Patterns
-
-### Multi-Step Workflows
-
-```python
-# Python data processing
-@agent.tool
-def process_sales_data(sales_records: list) -> dict:
-    \"\"\"Process raw sales data\"\"\"
-    total_sales = sum(record['amount'] for record in sales_records)
-    return {
-        'total_sales': total_sales,
-        'record_count': len(sales_records),
-        'average_sale': total_sales / len(sales_records)
-    }
-
-# JavaScript visualization  
-@agent.tool(language='javascript', source_code='''
-function generateSalesDashboard(salesData) {
-    const { total_sales, record_count, average_sale } = salesData;
-    
-    return `
-📊 Sales Dashboard
-═════════════════
-💰 Total Sales: $${total_sales.toFixed(2)}
-📈 Average Sale: $${average_sale.toFixed(2)}
-📋 Total Records: ${record_count}
-
-Generated: ${new Date().toLocaleString()}
-    `;
-}
-''')
-def generate_sales_dashboard():
-    pass
-
-# Use in conversation
-response = agent.chat(\"\"\"
-Process this sales data and create a dashboard:
-[
-    {"amount": 150.50}, 
-    {"amount": 200.00}, 
-    {"amount": 75.25}
-]
-\"\"\")
-```
-
-### Error Handling Across Languages
-
-```python
-# Python tool with error handling
-@agent.tool
-def divide_safely(a: float, b: float) -> dict:
-    \"\"\"Safely divide two numbers\"\"\"
-    try:
-        if b == 0:
-            raise ValueError("Cannot divide by zero")
-        
-        result = a / b
-        return {
-            'success': True,
-            'result': result,
-            'operation': f"{a} ÷ {b}"
-        }
-    except Exception as e:
-        return {
-            'success': False,
-            'error': str(e),
-            'operation': f"{a} ÷ {b}"
-        }
-```
-
-```javascript
-// JavaScript tool with error handling
-agent.tool('parseJsonSafely', {
-    description: 'Safely parse JSON string',
-    handler: (jsonString) => {
-        try {
-            const parsed = JSON.parse(jsonString);
-            
-            return {
-                success: true,
-                data: parsed,
-                type: Array.isArray(parsed) ? 'array' : typeof parsed
-            };
-            
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                input: jsonString.substring(0, 100) + (jsonString.length > 100 ? '...' : '')
-            };
-        }
-    }
-});
-```
+### Performance Optimization
+- **Lightweight Tools**: Keep tools focused and fast
+- **Batch Operations**: Design tools to handle batch operations
+- **Caching**: Use DataVault for caching expensive operations
+- **Async Support**: Long-running operations should be async
 
 ## Migration from CloudPickle
 
-### Step 1: Identify Tools to Migrate
+If you have existing agents using CloudPickle serialization:
 
-```bash
-# Run migration assessment
-python migration/cloudpickle_to_mcp.py --environment dev --dry-run
-```
+1. **Extract tool code** into separate functions
+2. **Add @tool decorator** or place in tools/ directory
+3. **Update agent configuration** to use new tools
+4. **Test locally** before deployment
+5. **Deploy** using new MCP system
 
-This shows:
-- Number of CloudPickle tools found
-- Which tools have extractable source code
-- Which tools use DataVault
-- Potential migration issues
-
-### Step 2: Perform Migration
-
-```bash
-# Migrate all tools
-python migration/cloudpickle_to_mcp.py --environment dev
-
-# Or migrate specific tool
-python migration/cloudpickle_to_mcp.py --environment dev --tool "namespace/tool_name"
-```
-
-### Step 3: Validate Migration
-
-```bash
-# Validate migrated tools
-python migration/validate_mcp_migration.py --environment dev --output migration_report.json
-```
-
-### Step 4: Update Tool Usage (Optional)
-
-After migration, you can enhance tools with explicit language specifications:
-
+Old (CloudPickle):
 ```python
-# Before (CloudPickle)
-@agent.tool
-def old_tool():
-    return "legacy"
-
-# After (MCP-enhanced)
-@agent.tool(language='python')  # Explicit language
-def enhanced_tool(param: str) -> dict:
-    \"\"\"Enhanced tool with better typing\"\"\"
-    return {"result": param, "enhanced": True}
+# This approach is deprecated
+agent.add_tool(my_function)  # Function was pickled
 ```
 
-## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-python tests/run_all_tests.py
-
-# Run specific test category
-python tests/run_all_tests.py --category integration
-
-# Run JavaScript SDK tests
-node tests/e2e/test_javascript_sdk.js
-```
-
-### Writing Tool Tests
-
+New (MCP):
 ```python
-# Test Python tool
-def test_my_python_tool():
-    agent = create_test_agent()
-    
-    @agent.tool
-    def test_tool(x: int) -> int:
-        return x * 2
-    
-    response = agent.chat("Use test_tool with x=5")
-    assert "10" in response
+# Tools are extracted as source code
+@tool
+def my_function():
+    return "result"
 
-# Test JavaScript tool  
-def test_my_js_tool():
-    agent = create_test_agent()
-    
-    @agent.tool(language='javascript', source_code='''
-    function doubler(x) { return x * 2; }
-    ''')
-    def js_doubler():
-        pass
-    
-    response = agent.chat("Use doubler with x=5")
-    assert "10" in response
+agent.add_tool(my_function)  # Source extracted
 ```
-
-## Performance Considerations
-
-### Container Task Optimization
-
-- **Free Tier**: Shared task pool (cost-efficient)
-- **Paid Tiers**: Dedicated tasks (better performance)
-- **Auto-scaling**: Tasks scale based on demand
-- **Warm Pool**: Pre-warmed tasks for low latency
-
-### Best Practices
-
-1. **Tool Design**:
-   - Keep tools focused and single-purpose
-   - Use appropriate language for the task
-   - Handle errors gracefully
-
-2. **Performance**:
-   - JavaScript tools typically start faster
-   - Python tools better for data processing
-   - Use DataVault for state persistence
-
-3. **Debugging**:
-   - Check execution logs for details
-   - Use validation tools for migration issues
-   - Test tools individually before deployment
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. Tool Not Executing
-```
-Error: Tool 'my_tool' not found
-```
+**"Cannot extract source code"**
+- Ensure tools are defined in .py files, not REPL/Jupyter
+- Check that functions are not lambdas or nested functions
 
-**Solutions**:
-- Verify tool is registered: `agent.tools` should contain tool
-- Check tool name matches exactly
-- Ensure MCP orchestrator is deployed
+**"Tool validation failed"**
+- Add proper docstrings to your tools
+- Include type hints for all parameters
+- Ensure function has a return statement
 
-#### 2. JavaScript Syntax Errors
-```
-Error: Unexpected token in JavaScript code
-```
+**"MCP execution timeout"**
+- Tools have a 30-second timeout
+- Break long operations into smaller tools
+- Use async patterns for long-running operations
 
-**Solutions**:
-- Validate JavaScript syntax
-- Use proper function declarations
-- Check for template string issues
+## Summary
 
-#### 3. DataVault Access Failed
-```
-Error: DataVault get failed: Connection timeout
-```
+FlowStack's MCP implementation provides:
+- **Secure execution** in isolated containers
+- **Source-based deployment** (no serialization)
+- **Simple development** with Python functions
+- **Scalable infrastructure** with auto-scaling
+- **Built-in persistence** with DataVault integration
 
-**Solutions**:
-- Check MONGODB_URI environment variable
-- Verify network connectivity
-- Check DataVault namespace permissions
-
-#### 4. MCP Task Creation Failed
-```
-Error: Failed to create MCP task
-```
-
-**Solutions**:
-- Verify container cluster is running
-- Check container task definitions exist
-- Review permissions for container execution
-
-### Getting Help
-
-1. **Check logs**: Execution logs for detailed errors
-2. **Run validation**: Use migration validation tools
-3. **Test individually**: Test tools before deployment
-4. **Review documentation**: Check this guide and examples
-
-## What's Next
-
-### Roadmap Features
-- **More languages**: Go, Rust, Java support planned  
-- **Tool marketplace**: Shared tool library
-- **Visual tool builder**: GUI for non-technical users
-- **Advanced workflows**: Complex multi-step automations
-
-### Contributing
-- Submit tool examples to the community
-- Report issues and bugs  
-- Suggest new language integrations
-- Contribute to SDK improvements
-
----
-
-**Ready to build multi-language AI agents?** Start with the examples above and explore the power of combining Python and JavaScript tools in your FlowStack agents!
+Tools are just Python functions that get deployed to a robust, managed infrastructure.
