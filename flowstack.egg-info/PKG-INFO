@@ -1,3 +1,31 @@
+Metadata-Version: 2.1
+Name: flowstack
+Version: 1.0.0
+Summary: AI Agent Platform SDK with built-in billing management
+Home-page: https://github.com/flowstack/python-sdk
+Author: FlowStack
+Author-email: hello@flowstack.ai
+License: UNKNOWN
+Project-URL: Bug Reports, https://github.com/flowstack/python-sdk/issues
+Project-URL: Source, https://github.com/flowstack/python-sdk
+Project-URL: Documentation, https://docs.flowstack.ai
+Keywords: ai,agents,llm,openai,anthropic,bedrock,aws
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+
 # FlowStack Python SDK
 
 A clean, simple SDK for building AI agents with automatic billing management and multi-provider support.
@@ -21,13 +49,13 @@ pip install flowstack
 ### Basic Usage
 
 ```python
-from flowstack import Agent, tool, DataVault
+from flowstack import Agent, Models, Providers
 
 # Create an agent (uses managed Bedrock by default)
 agent = Agent(
     name="my-assistant",
     api_key="fs_your_api_key_here",
-    model="claude-3-5-sonnet-20241022"
+    model=Models.CLAUDE_35_SONNET
 )
 
 # Simple chat
@@ -46,7 +74,7 @@ print(f"Sessions used: {usage.sessions_used}/{usage.sessions_limit}")
 agent = Agent(
     name="openai-agent",
     api_key="fs_your_api_key_here",
-    provider="openai",
+    provider=Providers.OPENAI,
     model="gpt-4o",
     byok={"api_key": "sk-your-openai-key"}
 )
@@ -55,8 +83,8 @@ agent = Agent(
 agent = Agent(
     name="bedrock-byok",
     api_key="fs_your_api_key_here",
-    provider="bedrock",
-    model="claude-3-5-sonnet-20241022",
+    provider=Providers.BEDROCK,
+    model=Models.CLAUDE_35_SONNET,
     byok={
         "aws_access_key": "AKIA...",
         "aws_secret_key": "your-secret",
@@ -68,7 +96,7 @@ agent = Agent(
 agent = Agent(
     name="anthropic-direct",
     api_key="fs_your_api_key_here", 
-    provider="anthropic",
+    provider=Providers.ANTHROPIC,
     model="claude-3-opus-20240229",
     byok={"api_key": "sk-ant-your-key"}
 )
@@ -90,94 +118,6 @@ messages = [
 ]
 
 response = agent.invoke(messages, temperature=0.7, max_tokens=100)
-```
-
-### Adding Custom Tools
-
-```python
-from flowstack import Agent, tool
-
-# Create an agent
-agent = Agent(
-    name="tool-agent",
-    api_key="fs_your_api_key_here",
-    instructions="You are a helpful assistant with custom tools"
-)
-
-# Define tools with @tool decorator
-@tool
-def calculate_discount(price: float, percentage: float) -> dict:
-    """Calculate discount amount and final price"""
-    discount = price * (percentage / 100)
-    final_price = price - discount
-    return {
-        "original_price": price,
-        "discount_amount": discount,
-        "final_price": final_price
-    }
-
-# Add tool to agent
-agent.add_tool(calculate_discount)
-
-# Use the agent with tools
-response = agent.chat("What's the final price of a $100 item with 20% discount?")
-print(response)
-```
-
-### Using DataVault for Persistence
-
-```python
-from flowstack import DataVault
-
-# Initialize DataVault
-vault = DataVault(api_key="fs_your_api_key_here")
-
-# Store data
-vault.store('users', {
-    'user_id': '123',
-    'name': 'John Doe',
-    'preferences': {'theme': 'dark'}
-}, key='user_123')
-
-# Retrieve data
-user_data = vault.retrieve('users', key='user_123')
-print(user_data)
-
-# Query data
-recent_users = vault.query('users', {
-    'created_at': {'$gte': '2024-01-01'}
-})
-```
-
-### YAML Configuration
-
-```python
-from flowstack import Agent
-
-# Create agent from YAML configuration
-agent = Agent.from_yaml("agent.yaml", api_key="fs_your_api_key_here")
-
-# agent.yaml:
-# name: my-assistant
-# instructions: You are a helpful assistant
-# model: claude-3-5-sonnet-20241022
-# temperature: 0.7
-# tools:
-#   search_web:
-#     description: Search the web for information
-```
-
-### Deployment
-
-```python
-# Deploy agent to production
-result = agent.deploy()
-
-print(f"Deployment ID: {result['deployment_id']}")
-print(f"Namespace: {result['namespace']}")
-print(f"API Endpoint: https://api.flowstack.fun/agents/{result['namespace']}/invoke")
-
-# Your agent is now accessible via API
 ```
 
 ### Usage Monitoring
@@ -316,3 +256,4 @@ flake8 flowstack/
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
