@@ -19,7 +19,7 @@ An automation agent that can:
 ## The Complete Code
 
 ```python title="automation_agent.py"
-from flowstack import Agent
+from flowstack import Agent, tool, DataVault
 from datetime import datetime, timedelta
 import json
 import hashlib
@@ -28,7 +28,7 @@ import hashlib
 automation = Agent(
     name="workflow-automation",
     api_key="fs_your_api_key_here",
-    system_prompt="""You are an intelligent workflow automation agent. You can:
+    instructions="""You are an intelligent workflow automation agent. You can:
     - Execute multi-step workflows with decision points
     - Remember workflow state and history
     - Make smart decisions based on data and context
@@ -38,8 +38,11 @@ automation = Agent(
     Always think through workflows step by step and use the available tools effectively."""
 )
 
+# Initialize DataVault for persistent storage
+vault = DataVault(api_key="fs_your_api_key_here")
+
 # Tool 1: Lead Scoring and CRM Automation
-@automation.tool
+@tool
 def process_new_lead(lead_data: dict) -> dict:
     """Process a new lead through the qualification workflow"""
     
@@ -93,7 +96,7 @@ def process_new_lead(lead_data: dict) -> dict:
     }
     
     # Store workflow state
-    automation.vault.store('workflows', workflow, key=workflow['id'])
+    vault.store('workflows', workflow, key=workflow['id'])
     
     # Execute first step
     result = execute_workflow_step(workflow['id'])
@@ -148,12 +151,12 @@ def calculate_lead_score(lead_data: dict) -> int:
     
     return min(score, 100)  # Cap at 100
 
-@automation.tool
+@tool
 def execute_workflow_step(workflow_id: str) -> dict:
     """Execute the next step in a workflow"""
     
     # Get workflow state
-    workflow = automation.vault.retrieve('workflows', key=workflow_id)
+    workflow = vault.retrieve('workflows', key=workflow_id)
     if not workflow:
         return {'error': 'Workflow not found'}
     
@@ -164,7 +167,7 @@ def execute_workflow_step(workflow_id: str) -> dict:
     if workflow['current_step'] >= len(workflow['steps']):
         workflow['status'] = 'completed'
         workflow['completed_at'] = datetime.now().isoformat()
-        automation.vault.store('workflows', workflow, key=workflow_id)
+        vault.store('workflows', workflow, key=workflow_id)
         return {'message': 'Workflow completed', 'workflow_id': workflow_id}
     
     # Execute current step
@@ -185,7 +188,7 @@ def execute_workflow_step(workflow_id: str) -> dict:
     workflow['updated_at'] = datetime.now().isoformat()
     
     # Update workflow state
-    automation.vault.store('workflows', workflow, key=workflow_id)
+    vault.store('workflows', workflow, key=workflow_id)
     
     return {
         'workflow_id': workflow_id,
@@ -219,7 +222,7 @@ def execute_step_action(step: str, workflow: dict) -> dict:
             'score': workflow['score'],
             'created_at': datetime.now().isoformat()
         }
-        automation.vault.store('crm_records', crm_record, key=workflow['lead_id'])
+        vault.store('crm_records', crm_record, key=workflow['lead_id'])
         return {'action': 'crm_record_created', 'priority': 'high', 'success': True}
     
     elif step == 'schedule_personal_followup':
@@ -231,7 +234,7 @@ def execute_step_action(step: str, workflow: dict) -> dict:
             'assigned_to': 'sales_team',
             'priority': 'high'
         }
-        automation.vault.store('followup_tasks', followup, key=f"followup_{workflow['lead_id']}")
+        vault.store('followup_tasks', followup, key=f"followup_{workflow['lead_id']}")
         return {'action': 'followup_scheduled', 'scheduled_for': followup['scheduled_for'], 'success': True}
     
     elif step == 'add_to_nurture_sequence':
@@ -244,7 +247,7 @@ def execute_step_action(step: str, workflow: dict) -> dict:
             'started_at': datetime.now().isoformat(),
             'next_email_date': (datetime.now() + timedelta(days=1)).isoformat()
         }
-        automation.vault.store('email_sequences', sequence, key=f"seq_{workflow['lead_id']}")
+        vault.store('email_sequences', sequence, key=f"seq_{workflow['lead_id']}")
         return {'action': 'added_to_nurture', 'sequence_length': 5, 'success': True}
     
     elif step == 'send_educational_content':
@@ -255,7 +258,7 @@ def execute_step_action(step: str, workflow: dict) -> dict:
             'title': f"Best Practices for {lead_data.get('industry', 'Your Industry')}",
             'sent_at': datetime.now().isoformat()
         }
-        automation.vault.store('content_delivered', content, key=f"content_{workflow['lead_id']}")
+        vault.store('content_delivered', content, key=f"content_{workflow['lead_id']}")
         return {'action': 'content_sent', 'content_type': 'industry_guide', 'success': True}
     
     else:
@@ -263,7 +266,7 @@ def execute_step_action(step: str, workflow: dict) -> dict:
         return {'action': step, 'message': f'Step {step} executed', 'success': True}
 
 # Tool 2: E-commerce Order Processing Automation
-@automation.tool
+@tool
 def process_order_workflow(order_data: dict) -> dict:
     """Process an e-commerce order through fulfillment workflow"""
     
@@ -300,7 +303,7 @@ def process_order_workflow(order_data: dict) -> dict:
         'results': []
     }
     
-    automation.vault.store('order_workflows', workflow, key=workflow['id'])
+    vault.store('order_workflows', workflow, key=workflow['id'])
     
     return {
         'order_id': order_id,
@@ -310,7 +313,7 @@ def process_order_workflow(order_data: dict) -> dict:
     }
 
 # Tool 3: Content Publishing Automation
-@automation.tool
+@tool
 def create_content_workflow(content_request: dict) -> dict:
     """Create and execute content publishing workflow"""
     
@@ -356,7 +359,7 @@ def create_content_workflow(content_request: dict) -> dict:
         'results': []
     }
     
-    automation.vault.store('content_workflows', workflow, key=workflow['id'])
+    vault.store('content_workflows', workflow, key=workflow['id'])
     
     return {
         'content_id': content_id,
@@ -366,7 +369,7 @@ def create_content_workflow(content_request: dict) -> dict:
     }
 
 # Tool 4: Workflow Analytics and Optimization
-@automation.tool
+@tool
 def analyze_workflow_performance(workflow_type: str = None, days: int = 30) -> dict:
     """Analyze workflow performance and identify optimization opportunities"""
     
@@ -377,7 +380,7 @@ def analyze_workflow_performance(workflow_type: str = None, days: int = 30) -> d
     if workflow_type:
         query['id'] = {'$regex': workflow_type}
     
-    workflows = automation.vault.query('workflows', query)
+    workflows = vault.query('workflows', query)
     
     if not workflows:
         return {'message': 'No workflows found for analysis', 'period_days': days}
@@ -477,7 +480,7 @@ def generate_optimization_recommendations(workflows: list) -> list:
     return recommendations
 
 # Tool 5: Scheduled Workflow Execution
-@automation.tool
+@tool
 def schedule_workflow_execution(workflow_type: str, schedule: str, params: dict = None) -> dict:
     """Schedule a workflow to run on a specific schedule"""
     
@@ -494,7 +497,7 @@ def schedule_workflow_execution(workflow_type: str, schedule: str, params: dict 
         'status': 'active'
     }
     
-    automation.vault.store('scheduled_workflows', scheduled_task, key=schedule_id)
+    vault.store('scheduled_workflows', scheduled_task, key=schedule_id)
     
     return {
         'schedule_id': schedule_id,
@@ -574,11 +577,12 @@ def deploy_automation():
     """Deploy the automation agent to production"""
     print("\n🚀 Deploying automation agent...")
     
-    endpoint = automation.deploy()
+    result = automation.deploy()
     
     print(f"✅ Automation agent deployed!")
-    print(f"Webhook URL: {endpoint}/chat")
-    print(f"API endpoint: {endpoint}")
+    print(f"Deployment ID: {result['deployment_id']}")
+    print(f"Namespace: {result['namespace']}")
+    print(f"API endpoint: https://api.flowstack.fun/agents/{result['namespace']}/invoke")
     
     print("\n📝 Integration examples:")
     print("• Webhook for new leads: POST to endpoint with lead data")
@@ -586,7 +590,7 @@ def deploy_automation():
     print("• Scheduled execution: Set up cron jobs to trigger workflows")
     print("• Analytics API: GET requests for performance data")
     
-    return endpoint
+    return result
 
 if __name__ == "__main__":
     # Run tests
@@ -608,7 +612,7 @@ import requests
 
 app = Flask(__name__)
 
-AUTOMATION_ENDPOINT = "https://api.flowstack.fun/agents/workflow-automation/chat"
+AUTOMATION_ENDPOINT = "https://api.flowstack.fun/agents/workflow-automation/invoke"
 FLOWSTACK_API_KEY = "fs_your_api_key_here"
 
 @app.route('/webhook/new-lead', methods=['POST'])
@@ -653,7 +657,7 @@ import time
 import requests
 import json
 
-AUTOMATION_ENDPOINT = "https://api.flowstack.fun/agents/workflow-automation/chat"
+AUTOMATION_ENDPOINT = "https://api.flowstack.fun/agents/workflow-automation/invoke"
 FLOWSTACK_API_KEY = "fs_your_api_key_here"
 
 def run_daily_analytics():
@@ -697,7 +701,7 @@ while True:
 ### Conditional Branching
 
 ```python
-@automation.tool
+@tool
 def execute_conditional_workflow(data: dict, conditions: dict) -> dict:
     """Execute workflow with conditional branching"""
     
@@ -725,7 +729,7 @@ def execute_conditional_workflow(data: dict, conditions: dict) -> dict:
         'created_at': datetime.now().isoformat()
     }
     
-    automation.vault.store('conditional_workflows', workflow, key=workflow_id)
+    vault.store('conditional_workflows', workflow, key=workflow_id)
     
     return {
         'workflow_id': workflow_id,
@@ -738,7 +742,7 @@ def execute_conditional_workflow(data: dict, conditions: dict) -> dict:
 ### Parallel Execution
 
 ```python
-@automation.tool
+@tool
 def execute_parallel_workflow(tasks: list) -> dict:
     """Execute multiple workflow tasks in parallel"""
     
@@ -754,7 +758,7 @@ def execute_parallel_workflow(tasks: list) -> dict:
             'created_at': datetime.now().isoformat()
         }
         parallel_tasks.append(task_record)
-        automation.vault.store('parallel_tasks', task_record, key=task_record['id'])
+        vault.store('parallel_tasks', task_record, key=task_record['id'])
     
     workflow = {
         'id': workflow_id,
@@ -767,7 +771,7 @@ def execute_parallel_workflow(tasks: list) -> dict:
         'created_at': datetime.now().isoformat()
     }
     
-    automation.vault.store('parallel_workflows', workflow, key=workflow_id)
+    vault.store('parallel_workflows', workflow, key=workflow_id)
     
     return {
         'workflow_id': workflow_id,
@@ -780,11 +784,11 @@ def execute_parallel_workflow(tasks: list) -> dict:
 ### Error Handling and Retry Logic
 
 ```python
-@automation.tool
+@tool
 def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
     """Execute workflow step with retry logic for failed operations"""
     
-    workflow = automation.vault.retrieve('workflows', key=workflow_id)
+    workflow = vault.retrieve('workflows', key=workflow_id)
     if not workflow:
         return {'error': 'Workflow not found'}
     
@@ -800,7 +804,7 @@ def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
             workflow['current_step'] += 1
             workflow['retry_count'] = 0  # Reset retry count
             workflow['updated_at'] = datetime.now().isoformat()
-            automation.vault.store('workflows', workflow, key=workflow_id)
+            vault.store('workflows', workflow, key=workflow_id)
             
             return {
                 'success': True,
@@ -813,7 +817,7 @@ def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
             if retry_count < max_retries:
                 workflow['retry_count'] = retry_count + 1
                 workflow['last_retry_at'] = datetime.now().isoformat()
-                automation.vault.store('workflows', workflow, key=workflow_id)
+                vault.store('workflows', workflow, key=workflow_id)
                 
                 return {
                     'success': False,
@@ -828,7 +832,7 @@ def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
                 workflow['status'] = 'failed'
                 workflow['failed_at'] = datetime.now().isoformat()
                 workflow['failure_reason'] = f'Step {current_step} failed after {max_retries} retries'
-                automation.vault.store('workflows', workflow, key=workflow_id)
+                vault.store('workflows', workflow, key=workflow_id)
                 
                 return {
                     'success': False,
@@ -842,7 +846,7 @@ def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
         workflow['status'] = 'error'
         workflow['error_at'] = datetime.now().isoformat()
         workflow['error_message'] = str(e)
-        automation.vault.store('workflows', workflow, key=workflow_id)
+        vault.store('workflows', workflow, key=workflow_id)
         
         return {
             'success': False,
@@ -857,23 +861,23 @@ def execute_workflow_with_retry(workflow_id: str, max_retries: int = 3) -> dict:
 ### Workflow Dashboard
 
 ```python
-@automation.tool
+@tool
 def get_workflow_dashboard() -> dict:
     """Get real-time workflow dashboard data"""
     
     # Active workflows
-    active_workflows = automation.vault.query('workflows', {'status': 'in_progress'})
+    active_workflows = vault.query('workflows', {'status': 'in_progress'})
     
     # Failed workflows in last 24 hours
     yesterday = (datetime.now() - timedelta(days=1)).isoformat()
-    recent_failures = automation.vault.query('workflows', {
+    recent_failures = vault.query('workflows', {
         'status': 'failed',
         'failed_at': {'$gte': yesterday}
     })
     
     # Completion stats for last 7 days
     week_ago = (datetime.now() - timedelta(days=7)).isoformat()
-    recent_workflows = automation.vault.query('workflows', {
+    recent_workflows = vault.query('workflows', {
         'created_at': {'$gte': week_ago}
     })
     

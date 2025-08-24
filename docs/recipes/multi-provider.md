@@ -19,7 +19,7 @@ A smart agent that can:
 ## The Complete Code
 
 ```python title="multi_provider_agent.py"
-from flowstack import Agent, Models, Providers
+from flowstack import Agent, tool, DataVault
 from datetime import datetime, timedelta
 import json
 
@@ -27,9 +27,9 @@ import json
 agent = Agent(
     name="smart-multi-provider",
     api_key="fs_your_api_key_here",
-    provider=Providers.BEDROCK,  # Default to managed Bedrock
-    model=Models.CLAUDE_35_SONNET,
-    system_prompt="""You are a smart assistant that can use multiple AI providers optimally. 
+    provider="bedrock",  # Default to managed Bedrock
+    model="claude-3-5-sonnet-20241022",
+    instructions="""You are a smart assistant that can use multiple AI providers optimally. 
     You should:
     - Choose the best provider for each task based on requirements
     - Consider cost, speed, and capability trade-offs
@@ -38,18 +38,21 @@ agent = Agent(
     """
 )
 
+# Initialize DataVault for persistent storage
+vault = DataVault(api_key="fs_your_api_key_here")
+
 # Define provider configurations
 PROVIDER_CONFIGS = {
     'bedrock_managed': {
-        'provider': Providers.BEDROCK,
-        'model': Models.CLAUDE_35_SONNET,
+        'provider': 'bedrock',
+        'model': 'claude-3-5-sonnet-20241022',
         'byok': None,  # Managed by FlowStack
         'cost_per_session': 'managed',  # Included in FlowStack pricing
         'strengths': ['reliability', 'no_setup', 'managed_billing'],
         'best_for': ['production', 'customer_facing', 'critical_tasks']
     },
     'openai_byok': {
-        'provider': Providers.OPENAI,
+        'provider': 'openai',
         'model': 'gpt-4o',
         'byok': {'api_key': 'sk-your-openai-key'},  # Your own key
         'cost_per_session': 'variable',  # Direct OpenAI billing
@@ -57,7 +60,7 @@ PROVIDER_CONFIGS = {
         'best_for': ['development', 'high_volume', 'cost_optimization']
     },
     'anthropic_byok': {
-        'provider': Providers.ANTHROPIC,
+        'provider': 'anthropic',
         'model': 'claude-3-opus-20240229',
         'byok': {'api_key': 'sk-ant-your-anthropic-key'},
         'cost_per_session': 'variable',
@@ -65,7 +68,7 @@ PROVIDER_CONFIGS = {
         'best_for': ['complex_analysis', 'research', 'content_generation']
     },
     'openai_fast': {
-        'provider': Providers.OPENAI,
+        'provider': 'openai',
         'model': 'gpt-3.5-turbo',
         'byok': {'api_key': 'sk-your-openai-key'},
         'cost_per_session': 'low',
@@ -75,7 +78,7 @@ PROVIDER_CONFIGS = {
 }
 
 # Tool 1: Smart Provider Selection
-@agent.tool
+@tool
 def select_optimal_provider(task_description: str, requirements: dict = None) -> dict:
     """Intelligently select the best provider for a given task"""
     
@@ -206,7 +209,7 @@ def calculate_provider_score(task_analysis: dict, provider_config: dict) -> floa
     
     return score
 
-@agent.tool
+@tool
 def switch_provider(provider_name: str) -> dict:
     """Switch to a different provider configuration"""
     
@@ -236,7 +239,7 @@ def switch_provider(provider_name: str) -> dict:
             'has_byok': config['byok'] is not None
         }
         
-        agent.vault.store('provider_switches', switch_log)
+        vault.store('provider_switches', switch_log)
         
         return {
             'success': True,
@@ -255,7 +258,7 @@ def switch_provider(provider_name: str) -> dict:
         }
 
 # Tool 2: Cost Tracking and Optimization
-@agent.tool
+@tool
 def track_provider_usage(provider_name: str, task_description: str, session_cost: float = None) -> dict:
     """Track usage and costs across providers"""
     
@@ -269,18 +272,18 @@ def track_provider_usage(provider_name: str, task_description: str, session_cost
         'date': datetime.now().date().isoformat()
     }
     
-    agent.vault.store('provider_usage', usage_record)
+    vault.store('provider_usage', usage_record)
     
     # Calculate daily and monthly usage
     today = datetime.now().date().isoformat()
     month_start = datetime.now().replace(day=1).date().isoformat()
     
-    daily_usage = agent.vault.query('provider_usage', {
+    daily_usage = vault.query('provider_usage', {
         'date': today,
         'provider_name': provider_name
     })
     
-    monthly_usage = agent.vault.query('provider_usage', {
+    monthly_usage = vault.query('provider_usage', {
         'date': {'$gte': month_start},
         'provider_name': provider_name
     })
@@ -341,14 +344,14 @@ def estimate_monthly_cost(usage_records: list, provider_name: str) -> dict:
         'estimated_cost': 'unable_to_estimate'
     }
 
-@agent.tool
+@tool
 def get_cost_optimization_recommendations() -> dict:
     """Analyze usage patterns and recommend cost optimizations"""
     
     # Get usage from last 30 days
     thirty_days_ago = (datetime.now() - timedelta(days=30)).date().isoformat()
     
-    all_usage = agent.vault.query('provider_usage', {
+    all_usage = vault.query('provider_usage', {
         'date': {'$gte': thirty_days_ago}
     })
     
@@ -475,7 +478,7 @@ def analyze_task_provider_matching(usage_records: list) -> dict:
     }
 
 # Tool 3: Provider Health and Fallback
-@agent.tool
+@tool
 def check_provider_health() -> dict:
     """Check health of all configured providers"""
     
@@ -521,11 +524,11 @@ def check_provider_health() -> dict:
         'unhealthy_providers': [p for p, status in health_status.items() if status['status'] == 'unhealthy']
     }
     
-    agent.vault.store('provider_health_checks', health_record)
+    vault.store('provider_health_checks', health_record)
     
     return health_record
 
-@agent.tool
+@tool
 def execute_with_fallback(task: str, preferred_provider: str = None, max_retries: int = 3) -> dict:
     """Execute a task with automatic provider fallback on failure"""
     
@@ -599,7 +602,7 @@ def execute_with_fallback(task: str, preferred_provider: str = None, max_retries
     }
 
 # Tool 4: Load Balancing
-@agent.tool
+@tool
 def distribute_load_across_providers(tasks: list, strategy: str = 'round_robin') -> dict:
     """Distribute multiple tasks across providers for load balancing"""
     
@@ -715,10 +718,12 @@ def deploy_multi_provider():
     """Deploy the multi-provider agent to production"""
     print("\n🚀 Deploying multi-provider agent...")
     
-    endpoint = agent.deploy()
+    result = agent.deploy()
     
     print(f"✅ Multi-provider agent deployed!")
-    print(f"Endpoint: {endpoint}")
+    print(f"Deployment ID: {result['deployment_id']}")
+    print(f"Namespace: {result['namespace']}")
+    print(f"API Endpoint: https://api.flowstack.fun/agents/{result['namespace']}/invoke")
     
     print("\n🔄 Your agent now supports:")
     print("• Automatic provider selection based on task requirements")
@@ -727,7 +732,7 @@ def deploy_multi_provider():
     print("• Load balancing across multiple providers")
     print("• Real-time provider switching")
     
-    return endpoint
+    return result
 
 if __name__ == "__main__":
     # Run tests
@@ -777,7 +782,7 @@ def setup_cost_optimized_agent():
         byok={'api_key': 'sk-your-openai-key'}
     )
     
-    @agent.tool
+    @tool
     def smart_cost_routing(task: str, max_cost_per_session: float = 0.10):
         """Route tasks based on cost constraints"""
         
@@ -824,7 +829,7 @@ PERFORMANCE_CONFIGS = {
     }
 }
 
-@agent.tool
+@tool
 def performance_based_routing(task: str, max_response_time: float = 5.0):
     """Route based on performance requirements"""
     
@@ -873,7 +878,7 @@ CAPABILITY_CONFIGS = {
     }
 }
 
-@agent.tool
+@tool
 def capability_based_routing(task: str, required_capabilities: list):
     """Route based on required capabilities"""
     
@@ -900,24 +905,24 @@ def capability_based_routing(task: str, required_capabilities: list):
 ### Usage Dashboard
 
 ```python
-@agent.tool
+@tool
 def get_multi_provider_dashboard(days: int = 7) -> dict:
     """Get comprehensive dashboard of multi-provider usage"""
     
     cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
     
     # Get all usage data
-    usage_data = agent.vault.query('provider_usage', {
+    usage_data = vault.query('provider_usage', {
         'date': {'$gte': cutoff_date}
     })
     
     # Get provider switches
-    switches = agent.vault.query('provider_switches', {
+    switches = vault.query('provider_switches', {
         'timestamp': {'$gte': cutoff_date + 'T00:00:00'}
     })
     
     # Get health checks
-    health_checks = agent.vault.query('provider_health_checks', {
+    health_checks = vault.query('provider_health_checks', {
         'timestamp': {'$gte': cutoff_date + 'T00:00:00'}
     })
     

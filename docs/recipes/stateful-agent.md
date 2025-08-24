@@ -19,7 +19,7 @@ A stateful agent that can:
 ## The Complete Code
 
 ```python title="learning_agent.py"
-from flowstack import Agent
+from flowstack import Agent, tool, DataVault
 from datetime import datetime, timedelta
 import json
 import statistics
@@ -28,7 +28,7 @@ import statistics
 agent = Agent(
     name="personal-learning-assistant",
     api_key="fs_your_api_key_here",
-    system_prompt="""You are a personal learning assistant that remembers everything about your users. You should:
+    instructions="""You are a personal learning assistant that remembers everything about your users. You should:
     - Remember user preferences, goals, and past conversations
     - Learn from user feedback and adapt your responses
     - Provide increasingly personalized and relevant help
@@ -38,13 +38,16 @@ agent = Agent(
     Always check user history and preferences before responding to provide the most relevant help."""
 )
 
+# Initialize DataVault for persistent storage
+vault = DataVault(api_key="fs_your_api_key_here")
+
 # Tool 1: User Profile Management
-@agent.tool
+@tool
 def get_user_profile(user_id: str) -> dict:
     """Get comprehensive user profile including preferences and history"""
     
     # Get base profile
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {
+    profile = vault.retrieve('user_profiles', key=user_id) or {
         'user_id': user_id,
         'created_at': datetime.now().isoformat(),
         'preferences': {},
@@ -55,17 +58,17 @@ def get_user_profile(user_id: str) -> dict:
     }
     
     # Get conversation history stats
-    conversations = agent.vault.query('conversations', {
+    conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=10)
     
     # Get learning progress
-    progress = agent.vault.query('learning_progress', {
+    progress = vault.query('learning_progress', {
         'user_id': user_id
     })
     
     # Get user feedback history
-    feedback = agent.vault.query('user_feedback', {
+    feedback = vault.query('user_feedback', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=5)
     
@@ -101,11 +104,11 @@ def calculate_engagement_score(profile: dict, conversations: list, feedback: lis
     
     return min(score, 100)  # Cap at 100
 
-@agent.tool
+@tool
 def update_user_preferences(user_id: str, preference_type: str, value: str, context: str = "") -> dict:
     """Update user preferences with learning context"""
     
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {
+    profile = vault.retrieve('user_profiles', key=user_id) or {
         'user_id': user_id,
         'created_at': datetime.now().isoformat(),
         'preferences': {},
@@ -129,8 +132,8 @@ def update_user_preferences(user_id: str, preference_type: str, value: str, cont
         'timestamp': datetime.now().isoformat()
     }
     
-    agent.vault.store('preference_changes', preference_change)
-    agent.vault.store('user_profiles', profile, key=user_id)
+    vault.store('preference_changes', preference_change)
+    vault.store('user_profiles', profile, key=user_id)
     
     return {
         'message': f"Updated {preference_type} preference to: {value}",
@@ -140,7 +143,7 @@ def update_user_preferences(user_id: str, preference_type: str, value: str, cont
     }
 
 # Tool 2: Conversation Memory and Context
-@agent.tool
+@tool
 def save_conversation_context(user_id: str, conversation_summary: str, key_points: list, user_mood: str = "neutral") -> dict:
     """Save conversation context for future reference"""
     
@@ -154,13 +157,13 @@ def save_conversation_context(user_id: str, conversation_summary: str, key_point
         'interaction_type': 'conversation'
     }
     
-    conv_key = agent.vault.store('conversations', conversation)
+    conv_key = vault.store('conversations', conversation)
     
     # Update user profile interaction count
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
     profile['interaction_count'] = profile.get('interaction_count', 0) + 1
     profile['last_interaction'] = datetime.now().isoformat()
-    agent.vault.store('user_profiles', profile, key=user_id)
+    vault.store('user_profiles', profile, key=user_id)
     
     # Analyze conversation for learning insights
     insights = analyze_conversation_for_insights(user_id, conversation)
@@ -209,12 +212,12 @@ def analyze_conversation_for_insights(user_id: str, conversation: dict) -> list:
     
     return insights
 
-@agent.tool
+@tool
 def recall_relevant_context(user_id: str, current_topic: str, limit: int = 5) -> dict:
     """Recall relevant conversation history and context for current topic"""
     
     # Get recent conversations
-    recent_conversations = agent.vault.query('conversations', {
+    recent_conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=20)
     
@@ -228,14 +231,14 @@ def recall_relevant_context(user_id: str, current_topic: str, limit: int = 5) ->
             relevant_conversations.append(conv)
     
     # Get user preferences related to current topic
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
     relevant_preferences = {}
     for pref_key, pref_value in profile.get('preferences', {}).items():
         if any(keyword in pref_key.lower() for keyword in topic_keywords):
             relevant_preferences[pref_key] = pref_value
     
     # Get learning progress on this topic
-    learning_progress = agent.vault.query('learning_progress', {
+    learning_progress = vault.query('learning_progress', {
         'user_id': user_id,
         'topic': {'$regex': current_topic, '$options': 'i'}
     })
@@ -249,12 +252,12 @@ def recall_relevant_context(user_id: str, current_topic: str, limit: int = 5) ->
     }
 
 # Tool 3: Learning Progress Tracking
-@agent.tool
+@tool
 def track_learning_progress(user_id: str, topic: str, skill_level: str, progress_notes: str) -> dict:
     """Track user's learning progress on specific topics"""
     
     # Check for existing progress on this topic
-    existing_progress = agent.vault.query('learning_progress', {
+    existing_progress = vault.query('learning_progress', {
         'user_id': user_id,
         'topic': topic
     })
@@ -280,7 +283,7 @@ def track_learning_progress(user_id: str, topic: str, skill_level: str, progress
             'timestamp': datetime.now().isoformat()
         })
         
-        agent.vault.store('learning_progress', progress_record, key=progress_record.get('_id'))
+        vault.store('learning_progress', progress_record, key=progress_record.get('_id'))
         
         return {
             'topic': topic,
@@ -303,7 +306,7 @@ def track_learning_progress(user_id: str, topic: str, skill_level: str, progress
             'history': []
         }
         
-        progress_key = agent.vault.store('learning_progress', progress_record)
+        progress_key = vault.store('learning_progress', progress_record)
         
         return {
             'topic': topic,
@@ -314,7 +317,7 @@ def track_learning_progress(user_id: str, topic: str, skill_level: str, progress
         }
 
 # Tool 4: Feedback Learning System
-@agent.tool
+@tool
 def collect_user_feedback(user_id: str, interaction_id: str, rating: int, feedback_text: str, suggestion: str = "") -> dict:
     """Collect and learn from user feedback"""
     
@@ -328,13 +331,13 @@ def collect_user_feedback(user_id: str, interaction_id: str, rating: int, feedba
         'processed': False
     }
     
-    feedback_key = agent.vault.store('user_feedback', feedback_record)
+    feedback_key = vault.store('user_feedback', feedback_record)
     
     # Process feedback for learning insights
     learning_insights = process_feedback_for_learning(user_id, feedback_record)
     
     # Update user profile based on feedback
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
     
     # Track satisfaction trends
     if 'satisfaction_history' not in profile:
@@ -352,7 +355,7 @@ def collect_user_feedback(user_id: str, interaction_id: str, rating: int, feedba
     recent_ratings = [r['rating'] for r in profile['satisfaction_history'][-10:]]
     profile['avg_satisfaction'] = statistics.mean(recent_ratings) if recent_ratings else rating
     
-    agent.vault.store('user_profiles', profile, key=user_id)
+    vault.store('user_profiles', profile, key=user_id)
     
     return {
         'feedback_id': feedback_key,
@@ -432,25 +435,25 @@ def analyze_satisfaction_trend(satisfaction_history: list) -> str:
         return 'stable'
 
 # Tool 5: Personalized Recommendations
-@agent.tool
+@tool
 def generate_personalized_recommendations(user_id: str, context: str = "") -> dict:
     """Generate personalized recommendations based on user history and preferences"""
     
     # Get user profile
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
     
     # Get learning progress
-    learning_progress = agent.vault.query('learning_progress', {
+    learning_progress = vault.query('learning_progress', {
         'user_id': user_id
     })
     
     # Get recent conversations
-    recent_conversations = agent.vault.query('conversations', {
+    recent_conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=10)
     
     # Get feedback patterns
-    feedback_history = agent.vault.query('user_feedback', {
+    feedback_history = vault.query('user_feedback', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=10)
     
@@ -529,16 +532,16 @@ def generate_personalized_recommendations(user_id: str, context: str = "") -> di
     }
 
 # Tool 6: Adaptive Response Style
-@agent.tool
+@tool
 def adapt_response_style(user_id: str, message_content: str) -> dict:
     """Adapt response style based on user history and preferences"""
     
     # Get user preferences
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
     preferences = profile.get('preferences', {})
     
     # Get recent feedback to understand communication preferences
-    recent_feedback = agent.vault.query('user_feedback', {
+    recent_feedback = vault.query('user_feedback', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=5)
     
@@ -624,10 +627,12 @@ def deploy_learning_agent():
     """Deploy the learning agent to production"""
     print("\n🚀 Deploying learning agent...")
     
-    endpoint = agent.deploy()
+    result = agent.deploy()
     
     print(f"✅ Learning agent deployed!")
-    print(f"Chat endpoint: {endpoint}/chat")
+    print(f"Deployment ID: {result['deployment_id']}")
+    print(f"Namespace: {result['namespace']}")
+    print(f"API Endpoint: https://api.flowstack.fun/agents/{result['namespace']}/invoke")
     
     print("\n🧠 Your agent now has:")
     print("• Memory of all user interactions")
@@ -636,7 +641,7 @@ def deploy_learning_agent():
     print("• Adaptive response styles")
     print("• Progress tracking capabilities")
     
-    return endpoint
+    return result
 
 if __name__ == "__main__":
     # Run tests
@@ -653,20 +658,20 @@ if __name__ == "__main__":
 ### User Journey Mapping
 
 ```python
-@agent.tool
+@tool
 def map_user_journey(user_id: str) -> dict:
     """Map the user's journey and identify patterns"""
     
     # Get all user interactions
-    conversations = agent.vault.query('conversations', {
+    conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', 1)])  # Chronological order
     
-    learning_progress = agent.vault.query('learning_progress', {
+    learning_progress = vault.query('learning_progress', {
         'user_id': user_id
     }, sort=[('created_at', 1)])
     
-    feedback = agent.vault.query('user_feedback', {
+    feedback = vault.query('user_feedback', {
         'user_id': user_id
     }, sort=[('timestamp', 1)])
     
@@ -773,17 +778,17 @@ def find_most_active_period(conversations: list) -> str:
 ### Predictive Insights
 
 ```python
-@agent.tool
+@tool
 def predict_user_needs(user_id: str) -> dict:
     """Predict what the user might need based on patterns"""
     
     # Get user data
-    profile = agent.vault.retrieve('user_profiles', key=user_id) or {}
-    conversations = agent.vault.query('conversations', {
+    profile = vault.retrieve('user_profiles', key=user_id) or {}
+    conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=20)
     
-    learning_progress = agent.vault.query('learning_progress', {
+    learning_progress = vault.query('learning_progress', {
         'user_id': user_id
     })
     

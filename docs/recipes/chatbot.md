@@ -36,13 +36,13 @@ bot = Agent(
 )
 
 # Tool 1: Vacation Day Management
-@bot.tool
+@tool
 def check_vacation_days(user_id: str) -> dict:
     """Check how many vacation days a user has remaining"""
     # In a real app, this would query your HR system
     # For demo, we'll use DataVault to simulate user data
     
-    user_data = bot.vault.retrieve('employees', key=user_id) or {
+    user_data = vault.retrieve('employees', key=user_id) or {
         'user_id': user_id,
         'vacation_days_total': 20,
         'vacation_days_used': 0,
@@ -59,13 +59,13 @@ def check_vacation_days(user_id: str) -> dict:
         'recent_requests': user_data['vacation_requests'][-3:]  # Last 3 requests
     }
 
-@bot.tool
+@tool
 def request_vacation(user_id: str, start_date: str, end_date: str, reason: str = "") -> dict:
     """Submit a vacation request"""
     from datetime import datetime
     
     # Get user data
-    user_data = bot.vault.retrieve('employees', key=user_id) or {
+    user_data = vault.retrieve('employees', key=user_id) or {
         'user_id': user_id,
         'vacation_days_total': 20,
         'vacation_days_used': 0,
@@ -100,10 +100,10 @@ def request_vacation(user_id: str, start_date: str, end_date: str, reason: str =
     user_data['vacation_requests'].append(request)
     user_data['vacation_days_used'] += days_requested  # Optimistically reserve
     
-    bot.vault.store('employees', user_data, key=user_id)
+    vault.store('employees', user_data, key=user_id)
     
     # Store the request for HR review
-    bot.vault.store('vacation_requests', request, key=request['id'])
+    vault.store('vacation_requests', request, key=request['id'])
     
     return {
         'success': True,
@@ -113,7 +113,7 @@ def request_vacation(user_id: str, start_date: str, end_date: str, reason: str =
     }
 
 # Tool 2: Company Knowledge Base
-@bot.tool
+@tool
 def search_company_policies(query: str) -> dict:
     """Search company policies and information"""
     # In a real app, this would search your knowledge base
@@ -163,12 +163,12 @@ def search_company_policies(query: str) -> dict:
     }
 
 # Tool 3: User Preference Management
-@bot.tool
+@tool
 def remember_user_preference(user_id: str, preference_type: str, value: str) -> dict:
     """Remember a user's preference for future conversations"""
     
     # Get existing preferences
-    prefs = bot.vault.retrieve('user_preferences', key=user_id) or {
+    prefs = vault.retrieve('user_preferences', key=user_id) or {
         'user_id': user_id,
         'preferences': {},
         'updated_at': datetime.now().isoformat()
@@ -179,7 +179,7 @@ def remember_user_preference(user_id: str, preference_type: str, value: str) -> 
     prefs['updated_at'] = datetime.now().isoformat()
     
     # Store back
-    bot.vault.store('user_preferences', prefs, key=user_id)
+    vault.store('user_preferences', prefs, key=user_id)
     
     return {
         'message': f"I'll remember that you prefer {preference_type}: {value}",
@@ -188,11 +188,11 @@ def remember_user_preference(user_id: str, preference_type: str, value: str) -> 
         'value': value
     }
 
-@bot.tool
+@tool
 def get_user_preferences(user_id: str) -> dict:
     """Get a user's saved preferences"""
     
-    prefs = bot.vault.retrieve('user_preferences', key=user_id)
+    prefs = vault.retrieve('user_preferences', key=user_id)
     
     if not prefs:
         return {
@@ -208,7 +208,7 @@ def get_user_preferences(user_id: str) -> dict:
     }
 
 # Tool 4: Conversation History
-@bot.tool
+@tool
 def save_conversation_summary(user_id: str, summary: str, topics: list) -> dict:
     """Save a summary of the conversation for future reference"""
     
@@ -221,7 +221,7 @@ def save_conversation_summary(user_id: str, summary: str, topics: list) -> dict:
     }
     
     # Store conversation
-    conv_key = bot.vault.store('conversations', conversation)
+    conv_key = vault.store('conversations', conversation)
     
     return {
         'message': 'Conversation summary saved',
@@ -229,13 +229,13 @@ def save_conversation_summary(user_id: str, summary: str, topics: list) -> dict:
         'topics': topics
     }
 
-@bot.tool
+@tool
 def recall_previous_conversations(user_id: str, days_back: int = 7) -> dict:
     """Recall previous conversations with this user"""
     
     cutoff_date = (datetime.now() - timedelta(days=days_back)).date().isoformat()
     
-    recent_conversations = bot.vault.query('conversations', {
+    recent_conversations = vault.query('conversations', {
         'user_id': user_id,
         'date': {'$gte': cutoff_date}
     }, sort=[('timestamp', -1)], limit=5)
@@ -287,18 +287,19 @@ def deploy_bot():
     """Deploy the bot to production"""
     print("\n🚀 Deploying to production...")
     
-    endpoint = bot.deploy()
+    result = bot.deploy()
     
     print(f"✅ Bot deployed successfully!")
-    print(f"Webhook URL: {endpoint}/chat")
-    print(f"Health check: {endpoint}/health")
+    print(f"Deployment ID: {result['deployment_id']}")
+    print(f"Namespace: {result['namespace']}")
+    print(f"API Endpoint: https://api.flowstack.fun/agents/{result['namespace']}/invoke")
     
     print("\n📝 Next steps:")
     print("1. Add the webhook URL to your Slack app settings")
     print("2. Configure your chat platform to send messages to the endpoint")
     print("3. Test with real users!")
     
-    return endpoint
+    return result
 
 if __name__ == "__main__":
     # Run local tests first
@@ -323,7 +324,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-FLOWSTACK_ENDPOINT = "https://api.flowstack.fun/agents/company-assistant/chat"
+FLOWSTACK_ENDPOINT = "https://api.flowstack.fun/agents/company-assistant/invoke"
 FLOWSTACK_API_KEY = "fs_your_api_key_here"
 
 @app.route('/slack/events', methods=['POST'])
@@ -387,7 +388,7 @@ import discord
 import requests
 import asyncio
 
-FLOWSTACK_ENDPOINT = "https://api.flowstack.fun/agents/company-assistant/chat"
+FLOWSTACK_ENDPOINT = "https://api.flowstack.fun/agents/company-assistant/invoke"
 FLOWSTACK_API_KEY = "fs_your_api_key_here"
 
 class FlowStackBot(discord.Client):
@@ -447,7 +448,7 @@ client.run('YOUR_DISCORD_BOT_TOKEN')
 Add usage tracking to understand how your bot is being used:
 
 ```python
-@bot.tool
+@tool
 def track_bot_usage(user_id: str, action: str, details: dict = None) -> dict:
     """Track bot usage for analytics"""
     
@@ -460,17 +461,17 @@ def track_bot_usage(user_id: str, action: str, details: dict = None) -> dict:
         'hour': datetime.now().hour
     }
     
-    bot.vault.store('usage_analytics', usage_event)
+    vault.store('usage_analytics', usage_event)
     
     return {'tracked': True, 'action': action}
 
-@bot.tool
+@tool
 def get_bot_analytics(days: int = 7) -> dict:
     """Get bot usage analytics"""
     
     cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
     
-    events = bot.vault.query('usage_analytics', {
+    events = vault.query('usage_analytics', {
         'date': {'$gte': cutoff_date}
     })
     
@@ -504,17 +505,17 @@ def get_bot_analytics(days: int = 7) -> dict:
 Make your bot proactive by suggesting actions:
 
 ```python
-@bot.tool
+@tool
 def suggest_next_actions(user_id: str) -> dict:
     """Suggest relevant actions based on user history"""
     
     # Get user's recent activity
-    recent_conversations = bot.vault.query('conversations', {
+    recent_conversations = vault.query('conversations', {
         'user_id': user_id
     }, sort=[('timestamp', -1)], limit=5)
     
     # Get user preferences
-    prefs = bot.vault.retrieve('user_preferences', key=user_id)
+    prefs = vault.retrieve('user_preferences', key=user_id)
     
     suggestions = []
     

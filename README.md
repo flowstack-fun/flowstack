@@ -246,41 +246,44 @@ except FlowStackError as e:
 
 All billing is handled automatically - you only see your usage and current charges.
 
-## Model Constants
+## Available Models
 
+### Bedrock Models (Managed or BYOK)
 ```python
-from flowstack import Models
+# Anthropic Claude
+"claude-3-5-sonnet-20241022"
+"claude-3-5-haiku-20241022"
+"claude-3-opus-20240229"
 
-# Anthropic Claude (via Bedrock)
-Models.CLAUDE_35_SONNET
-Models.CLAUDE_35_HAIKU
-Models.CLAUDE_3_OPUS
+# Meta Llama
+"meta.llama3-70b-instruct-v1:0"
+"meta.llama3-1-405b-instruct-v1:0"
 
-# Meta Llama (via Bedrock)
-Models.LLAMA_3_70B
-Models.LLAMA_31_405B
-
-# OpenAI (BYOK only)
-Models.GPT_4O
-Models.GPT_4_TURBO
-
-# And many more...
+# And more Bedrock models...
 ```
 
-## Provider Constants
+### BYOK-Only Models
+```python
+# OpenAI
+"gpt-4o"
+"gpt-4-turbo"
+"gpt-3.5-turbo"
+
+# Anthropic Direct
+"claude-3-opus-20240229"
+"claude-3-sonnet-20240229"
+```
+
+## Available Providers
 
 ```python
-from flowstack import Providers
-
-# Managed billing available
-Providers.BEDROCK
-
-# BYOK only
-Providers.OPENAI
-Providers.ANTHROPIC
-Providers.COHERE
-Providers.MISTRAL
-Providers.OLLAMA
+# Provider strings to use:
+"bedrock"      # Amazon Bedrock (managed or BYOK)
+"openai"       # OpenAI (BYOK only)
+"anthropic"    # Anthropic Direct (BYOK only)
+"cohere"       # Cohere (BYOK only)
+"mistral"      # Mistral AI (BYOK only)
+"ollama"       # Local Ollama (BYOK only)
 ```
 
 ## Development
