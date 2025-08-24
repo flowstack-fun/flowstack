@@ -351,6 +351,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../mcp-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../datavault/" class="md-nav__link">
         
   
@@ -394,6 +416,50 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../migration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -410,10 +476,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   
@@ -426,8 +492,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Recipes
           </label>
@@ -1018,15 +1084,15 @@
     User[Users] --&gt; CDN[Global CDN]
     CDN --&gt; Gateway[API Gateway]
     Gateway --&gt; LB[Load Balancer]
-    LB --&gt; Lambda1[Lambda Instance 1]
-    LB --&gt; Lambda2[Lambda Instance 2] 
-    LB --&gt; Lambda3[Lambda Instance N]
-    Lambda1 --&gt; DataVault[(DataVault)]
-    Lambda2 --&gt; DataVault
-    Lambda3 --&gt; DataVault
-    Lambda1 --&gt; AI[AI Providers]
-    Lambda2 --&gt; AI
-    Lambda3 --&gt; AI</code></pre>
+    LB --&gt; Function1[Function Instance 1]
+    LB --&gt; Function2[Function Instance 2] 
+    LB --&gt; Function3[Function Instance N]
+    Function1 --&gt; DataVault[(DataVault)]
+    Function2 --&gt; DataVault
+    Function3 --&gt; DataVault
+    Function1 --&gt; AI[AI Providers]
+    Function2 --&gt; AI
+    Function3 --&gt; AI</code></pre>
 <h2 id="whats-included-in-production">What's Included in Production</h2>
 <h3 id="automatic-scaling">Automatic Scaling</h3>
 <p>Your agent handles traffic spikes without configuration:</p>

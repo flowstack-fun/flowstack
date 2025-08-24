@@ -16,7 +16,7 @@
         <link rel="prev" href="../quickstart/">
       
       
-        <link rel="next" href="../datavault/">
+        <link rel="next" href="../mcp-guide/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -455,6 +455,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mcp-model-context-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCP (Model Context Protocol)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#deployment-environments" class="md-nav__link">
     <span class="md-ellipsis">
       Deployment Environments
@@ -477,6 +486,15 @@
   
     <nav class="md-nav" aria-label="DataVault">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#datavault-collections" class="md-nav__link">
@@ -651,6 +669,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../mcp-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../datavault/" class="md-nav__link">
         
   
@@ -694,6 +734,50 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../migration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -710,10 +794,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   
@@ -726,8 +810,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Recipes
           </label>
@@ -947,18 +1031,24 @@
 </span></code></pre></div>
 </div>
 <h2 id="tools">Tools</h2>
-<p><strong>Tools</strong> are Python functions that give your agent capabilities beyond chat.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@agent</span><span class="o">.</span><span class="n">tool</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">city</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get current weather for a city&quot;&quot;&quot;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="c1"># Your implementation here</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="n">city</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span> <span class="s2">&quot;condition&quot;</span><span class="p">:</span> <span class="s2">&quot;sunny&quot;</span><span class="p">}</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nd">@agent</span><span class="o">.</span><span class="n">tool</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">send_email</span><span class="p">(</span><span class="n">to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send an email to a user&quot;&quot;&quot;</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="c1"># Integration with email service</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;sent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc123&quot;</span><span class="p">}</span>
+<p><strong>Tools</strong> are functions that give your agent capabilities beyond chat. FlowStack supports both Python and JavaScript tools.</p>
+<div class="admonition important">
+<p class="admonition-title">File-based Tools Required</p>
+<p>Tools must be defined in <code>.py</code> files, not in interactive environments (REPL, Jupyter, command line).
+This allows FlowStack to extract source code for secure MCP execution.</p>
+</div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># In a file: my_agent.py</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nd">@agent</span><span class="o">.</span><span class="n">tool</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">city</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get current weather for a city&quot;&quot;&quot;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="c1"># Your implementation here</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="n">city</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span> <span class="s2">&quot;condition&quot;</span><span class="p">:</span> <span class="s2">&quot;sunny&quot;</span><span class="p">}</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nd">@agent</span><span class="o">.</span><span class="n">tool</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">send_email</span><span class="p">(</span><span class="n">to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Send an email to a user&quot;&quot;&quot;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="c1"># Integration with email service</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;sent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc123&quot;</span><span class="p">}</span>
 </span></code></pre></div>
 <h3 id="tool-guidelines">Tool Guidelines</h3>
 <div class="admonition success">
@@ -1042,12 +1132,21 @@
 </span></code></pre></div>
 <h3 id="what-happens-during-deployment">What Happens During Deployment?</h3>
 <ol>
-<li><strong>Code Packaging</strong>: Your agent code and tools are packaged</li>
-<li><strong>Infrastructure Setup</strong>: Lambda functions, API Gateway, databases</li>
+<li><strong>Source Code Extraction</strong>: Your tools' source code is extracted from .py files</li>
+<li><strong>MCP Configuration</strong>: Tools are prepared for secure, isolated execution</li>
+<li><strong>Infrastructure Setup</strong>: Serverless functions, API endpoints, databases</li>
 <li><strong>Endpoint Creation</strong>: Your agent gets a unique HTTPS URL</li>
 <li><strong>Health Checks</strong>: We verify everything is working</li>
 <li><strong>Go Live</strong>: Your agent starts handling requests</li>
 </ol>
+<h3 id="mcp-model-context-protocol">MCP (Model Context Protocol)</h3>
+<p>FlowStack uses MCP for secure tool execution:</p>
+<ul>
+<li><strong>Container Isolation</strong>: Each tool runs in its own secure container</li>
+<li><strong>Source-based Execution</strong>: Tools run from source code, not serialized objects</li>
+<li><strong>Multi-language Support</strong>: Python and JavaScript tools in the same agent</li>
+<li><strong>Security First</strong>: Tools cannot access other tools' data or environments</li>
+</ul>
 <h3 id="deployment-environments">Deployment Environments</h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Development</label><label for="__tabbed_2_2">Production</label></div>
 <div class="tabbed-content">
@@ -1079,6 +1178,13 @@
 </div>
 <h2 id="datavault">DataVault</h2>
 <p><strong>DataVault</strong> is persistent storage built into every agent. Think of it as a simple database that just works.</p>
+<h3 id="key-features">Key Features</h3>
+<ul>
+<li><strong>Namespace Isolation</strong>: Each agent has its own isolated data space</li>
+<li><strong>MongoDB-backed</strong>: Reliable, scalable document storage</li>
+<li><strong>Zero Configuration</strong>: Works automatically, no setup required</li>
+<li><strong>Secure Access</strong>: Only your agent can access its vault</li>
+</ul>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Store data</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">key</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">vault</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">,</span> <span class="p">{</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Alice&#39;</span><span class="p">,</span>
@@ -1150,13 +1256,9 @@
 </span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
 </span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="p">})</span>
 </span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_conversation_history</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get recent conversations for context&quot;&quot;&quot;</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">vault</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;conversations&#39;</span><span class="p">,</span> 
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>        <span class="p">{</span><span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">},</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>        <span class="n">sort</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)],</span>
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>        <span class="n">limit</span><span class="o">=</span><span class="n">limit</span>
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="p">)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_conversation_history</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get conversation history for context&quot;&quot;&quot;</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="k">return</span> <span class="n">agent</span><span class="o">.</span><span class="n">vault</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;conversations&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;user_id&#39;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">})</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
@@ -1235,7 +1337,7 @@
 </span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">)</span>
 </span></code></pre></div>
 <p><strong>Benefits</strong>: No additional setup, optimized performance, included in session pricing.</p>
-<p><strong>Available</strong>: AWS Bedrock (Claude, Llama, Mistral models)</p>
+<p><strong>Available</strong>: Multiple AI providers including Claude, Llama, Mistral models</p>
 <h3 id="byok-providers-bring-your-own-keys">BYOK Providers (Bring Your Own Keys)</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span>
 </span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-agent&quot;</span><span class="p">,</span> 
@@ -1246,7 +1348,7 @@
 </span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">)</span>
 </span></code></pre></div>
 <p><strong>Benefits</strong>: Direct billing from provider, no markup, full control.</p>
-<p><strong>Supported</strong>: OpenAI, Anthropic, Cohere, Mistral, Ollama, AWS Bedrock</p>
+<p><strong>Supported</strong>: OpenAI, Anthropic, Cohere, Mistral, Ollama, and more</p>
 <h3 id="provider-switching">Provider Switching</h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Start with managed Bedrock</span>
 </span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="s2">&quot;flexible-agent&quot;</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;fs_...&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;bedrock&quot;</span><span class="p">)</span>
@@ -1261,7 +1363,8 @@
 <p>Every agent runs in its own secure environment:</p>
 <h3 id="agent-isolation">Agent Isolation</h3>
 <ul>
-<li><strong>Separate containers</strong>: Each agent runs in isolation</li>
+<li><strong>MCP Containers</strong>: Tools execute in isolated containers via MCP</li>
+<li><strong>Source Code Security</strong>: No serialized code execution, only source</li>
 <li><strong>Namespaced data</strong>: DataVault data is isolated per agent</li>
 <li><strong>API key authentication</strong>: Only you can access your agents</li>
 <li><strong>Rate limiting</strong>: Automatic protection against abuse</li>

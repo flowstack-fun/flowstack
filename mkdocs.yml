@@ -1,0 +1,123 @@
+site_name: FlowStack SDK
+site_description: From local agent to production in 5 minutes
+site_url: https://docs.flowstack.fun
+repo_url: https://github.com/flowstack-fun/flowstack
+repo_name: flowstack-fun/flowstack
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+    - toc.integrate
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            show_if_no_docstring: false
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Core Concepts: concepts.md
+  - MCP Guide: mcp-guide.md
+  - DataVault: datavault.md
+  - Deployment: deployment.md
+  - Migration Guide: migration-guide.md
+  - Authentication: authentication.md
+  - Recipes:
+    - Chatbot Agent: recipes/chatbot.md
+    - Automation Agent: recipes/automation-agent.md
+    - Stateful Agent: recipes/stateful-agent.md
+    - Multi-Provider Setup: recipes/multi-provider.md
+  - API Reference: api-reference.md
+  - Production Guide: production.md
+  - Billing & Usage: billing.md
+
+markdown_extensions:
+  # Code highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  
+  # Content tabs
+  - pymdownx.tabbed:
+      alternate_style: true
+  
+  # Admonitions
+  - admonition
+  - pymdownx.details
+  
+  # Lists and formatting
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  
+  # Links and abbreviations
+  - abbr
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/flowstack
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/flowstack
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/flowstack
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  version:
+    provider: mike
+
+extra_css:
+  - stylesheets/extra.css
+
+copyright: Copyright &copy; 2024 FlowStack
