@@ -26,6 +26,10 @@ pip install flowstack
 
 ## Step 3: Build Your First Agent
 
+!!! important "File Requirement"
+    Tools must be defined in a `.py` file (not in REPL, Jupyter, or command line).
+    FlowStack needs to extract source code for secure MCP execution.
+
 Create a file called `my_agent.py`:
 
 ```python title="my_agent.py"
@@ -105,7 +109,15 @@ Feedback: Thank you for your feedback! I've saved your comment about great servi
 !!! success "It Works!"
     Your agent is now running locally with tools and DataVault persistence. Next, let's make it live!
 
+!!! tip "Troubleshooting: 'Cannot extract source' error"
+    If you see an error about source extraction, make sure:
+    1. Your tools are defined in a .py file (not interactive Python)
+    2. The file is saved before running
+    3. You're running the file with `python my_agent.py`, not copying into REPL
+
 ## Step 5: Deploy to Production
+
+When you deploy, FlowStack extracts your tool source code and configures them for secure MCP execution.
 
 Add this to the bottom of your `my_agent.py` file:
 
@@ -188,6 +200,7 @@ Your agent is now running in production! Test it with curl:
 You just built and deployed a production AI agent in under 5 minutes! Your agent:
 
 ✅ **Has custom tools** - `lookup_order()` and `store_feedback()`  
+✅ **Secure tool execution** - Tools run in isolated MCP containers  
 ✅ **Uses persistent storage** - DataVault automatically stores feedback  
 ✅ **Runs in production** - Live HTTPS endpoint ready for real traffic  
 ✅ **Scales automatically** - From 0 to thousands of requests  

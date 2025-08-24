@@ -27,35 +27,46 @@ That's it! Your agent is now running in production.
 
 When you call `agent.deploy()`, FlowStack automatically:
 
-### 1. **Code Packaging** ⚡
-- Packages your agent code, tools, and configuration
-- Handles dependencies and imports
-- Creates deployment artifacts
+### 1. **Source Code Extraction** ⚡
+- Extracts your tools' source code from .py files
+- Validates that tools can be executed securely
+- Prepares tools for MCP execution
 
-### 2. **Infrastructure Provisioning** 🏗️
-- Spins up Lambda functions with your agent code
-- Configures API Gateway for HTTP access
+!!! important "Source Code Requirement"
+    Tools must be defined in Python files (.py), not in interactive environments.
+    FlowStack extracts the actual source code for secure execution via MCP.
+
+### 2. **MCP Configuration** 🔒
+- Configures tools for Model Context Protocol (MCP) execution
+- Sets up isolated container environments
+- Establishes secure communication channels
+
+### 3. **Infrastructure Provisioning** 🏗️
+- Spins up serverless functions with your agent
+- Configures API endpoints for HTTP access
 - Sets up load balancing and auto-scaling
 - Creates monitoring and logging
 
-### 3. **Data Setup** 💾
+### 4. **Data Setup** 💾
 - Provisions your DataVault namespace
 - Sets up database connections and permissions
 - Configures data isolation and security
 
-### 4. **Security Configuration** 🔒
+### 5. **Security Configuration** 🔒
 - Applies API key authentication
 - Sets up rate limiting and abuse protection
 - Configures HTTPS and network security
 - Implements request isolation
+- Enables MCP security boundaries
 
-### 5. **Health Checks** ✅
+### 6. **Health Checks** ✅
 - Verifies your agent starts correctly
 - Tests tool functionality
 - Validates API responses
 - Confirms monitoring is working
+- Checks MCP orchestration
 
-### 6. **Endpoint Creation** 🌐
+### 7. **Endpoint Creation** 🌐
 - Assigns your unique API endpoint
 - Configures routing and load balancing
 - Sets up global edge caching
@@ -456,7 +467,25 @@ def cached_expensive_operation(query: str) -> dict:
 
 ### Common Deployment Issues
 
-#### 1. Import Errors
+#### 1. Source Extraction Errors
+
+**Problem:** "Cannot extract source code" or "Tool must be in .py file"
+
+**Solution:** Ensure tools are defined in Python files, not REPL/Jupyter
+
+```python
+# BAD: Defining in REPL or Jupyter
+>>> @agent.tool
+>>> def my_tool():
+>>>     return "Won't work"
+
+# GOOD: In a file my_agent.py
+@agent.tool
+def my_tool():
+    return "Works!"
+```
+
+#### 2. Import Errors
 
 **Problem:** Module not found errors after deployment
 
@@ -473,7 +502,7 @@ except ImportError as e:
     print(f"❌ Import error: {e}")
 ```
 
-#### 2. Tool Function Errors
+#### 3. Tool Function Errors
 
 **Problem:** Tools fail during deployment
 
@@ -491,7 +520,7 @@ result = test_tool()
 print(f"Tool test result: {result}")
 ```
 
-#### 3. Timeout Issues
+#### 4. Timeout Issues
 
 **Problem:** Deployment times out
 
@@ -502,7 +531,7 @@ print(f"Tool test result: {result}")
 endpoint = agent.deploy(timeout=60)  # 60 seconds
 ```
 
-#### 4. Memory Issues
+#### 5. Memory Issues
 
 **Problem:** Out of memory errors
 

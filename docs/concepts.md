@@ -35,9 +35,14 @@ agent = Agent(
 
 ## Tools
 
-**Tools** are Python functions that give your agent capabilities beyond chat.
+**Tools** are functions that give your agent capabilities beyond chat. FlowStack supports both Python and JavaScript tools.
+
+!!! important "File-based Tools Required"
+    Tools must be defined in `.py` files, not in interactive environments (REPL, Jupyter, command line).
+    This allows FlowStack to extract source code for secure MCP execution.
 
 ```python
+# In a file: my_agent.py
 @agent.tool
 def get_weather(city: str) -> dict:
     """Get current weather for a city"""
@@ -132,11 +137,21 @@ endpoint = agent.deploy()
 
 ### What Happens During Deployment?
 
-1. **Code Packaging**: Your agent code and tools are packaged
-2. **Infrastructure Setup**: Lambda functions, API Gateway, databases
-3. **Endpoint Creation**: Your agent gets a unique HTTPS URL
-4. **Health Checks**: We verify everything is working
-5. **Go Live**: Your agent starts handling requests
+1. **Source Code Extraction**: Your tools' source code is extracted from .py files
+2. **MCP Configuration**: Tools are prepared for secure, isolated execution
+3. **Infrastructure Setup**: Serverless functions, API endpoints, databases
+4. **Endpoint Creation**: Your agent gets a unique HTTPS URL
+5. **Health Checks**: We verify everything is working
+6. **Go Live**: Your agent starts handling requests
+
+### MCP (Model Context Protocol)
+
+FlowStack uses MCP for secure tool execution:
+
+- **Container Isolation**: Each tool runs in its own secure container
+- **Source-based Execution**: Tools run from source code, not serialized objects
+- **Multi-language Support**: Python and JavaScript tools in the same agent
+- **Security First**: Tools cannot access other tools' data or environments
 
 ### Deployment Environments
 
@@ -166,6 +181,13 @@ endpoint = agent.deploy()
 ## DataVault
 
 **DataVault** is persistent storage built into every agent. Think of it as a simple database that just works.
+
+### Key Features
+
+- **Namespace Isolation**: Each agent has its own isolated data space
+- **MongoDB-backed**: Reliable, scalable document storage
+- **Zero Configuration**: Works automatically, no setup required
+- **Secure Access**: Only your agent can access its vault
 
 ```python
 # Store data
@@ -237,13 +259,9 @@ Think of **collections** like database tables. Each agent can create multiple co
             'timestamp': datetime.now().isoformat()
         })
     
-    def get_conversation_history(user_id: str, limit: int = 10):
-        """Get recent conversations for context"""
-        return agent.vault.query('conversations', 
-            {'user_id': user_id},
-            sort=[('timestamp', -1)],
-            limit=limit
-        )
+    def get_conversation_history(user_id: str):
+        """Get conversation history for context"""
+        return agent.vault.query('conversations', {'user_id': user_id})
     ```
 
 === "Agent Learning"
@@ -331,7 +349,7 @@ agent = Agent(
 
 **Benefits**: No additional setup, optimized performance, included in session pricing.
 
-**Available**: AWS Bedrock (Claude, Llama, Mistral models)
+**Available**: Multiple AI providers including Claude, Llama, Mistral models
 
 ### BYOK Providers (Bring Your Own Keys)
 
@@ -347,7 +365,7 @@ agent = Agent(
 
 **Benefits**: Direct billing from provider, no markup, full control.
 
-**Supported**: OpenAI, Anthropic, Cohere, Mistral, Ollama, AWS Bedrock
+**Supported**: OpenAI, Anthropic, Cohere, Mistral, Ollama, and more
 
 ### Provider Switching
 
@@ -367,7 +385,8 @@ agent.set_provider("anthropic", byok={"api_key": "sk-ant-..."})
 Every agent runs in its own secure environment:
 
 ### Agent Isolation
-- **Separate containers**: Each agent runs in isolation
+- **MCP Containers**: Tools execute in isolated containers via MCP
+- **Source Code Security**: No serialized code execution, only source
 - **Namespaced data**: DataVault data is isolated per agent
 - **API key authentication**: Only you can access your agents
 - **Rate limiting**: Automatic protection against abuse

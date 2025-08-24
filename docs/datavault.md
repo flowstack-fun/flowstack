@@ -173,12 +173,11 @@ dark_theme_users = agent.vault.query('users', {
     'preferences.theme': 'dark'
 })
 
-# Sorting and limiting
-recent_conversations = agent.vault.query('conversations', 
-    filter={'user_id': 'user_123'},
-    sort=[('last_activity', -1)],  # Descending
-    limit=10
-)
+# Query with multiple conditions
+user_conversations = agent.vault.query('conversations', {
+    'user_id': 'user_123',
+    'active': True
+})
 ```
 
 ### Aggregation
@@ -372,11 +371,7 @@ def recall_customer_context(customer_id: str, category: str = None):
     if category:
         query['category'] = category
     
-    memories = agent.vault.query('customer_memory', 
-        filter=query,
-        sort=[('timestamp', -1)],
-        limit=10
-    )
+    memories = agent.vault.query('customer_memory', query)
     
     if not memories:
         return {'message': 'No previous context found for this customer'}

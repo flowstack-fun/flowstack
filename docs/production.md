@@ -11,15 +11,15 @@ graph TB
     User[Users] --> CDN[Global CDN]
     CDN --> Gateway[API Gateway]
     Gateway --> LB[Load Balancer]
-    LB --> Lambda1[Lambda Instance 1]
-    LB --> Lambda2[Lambda Instance 2] 
-    LB --> Lambda3[Lambda Instance N]
-    Lambda1 --> DataVault[(DataVault)]
-    Lambda2 --> DataVault
-    Lambda3 --> DataVault
-    Lambda1 --> AI[AI Providers]
-    Lambda2 --> AI
-    Lambda3 --> AI
+    LB --> Function1[Function Instance 1]
+    LB --> Function2[Function Instance 2] 
+    LB --> Function3[Function Instance N]
+    Function1 --> DataVault[(DataVault)]
+    Function2 --> DataVault
+    Function3 --> DataVault
+    Function1 --> AI[AI Providers]
+    Function2 --> AI
+    Function3 --> AI
 ```
 
 ## What's Included in Production

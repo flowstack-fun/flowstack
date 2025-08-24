@@ -35,7 +35,12 @@ agent = Agent(
 
 #### Adding Tools
 
+!!! important "Source Code Requirement"
+    Tools must be defined in Python files (.py), not in interactive environments.
+    FlowStack extracts source code for secure MCP execution.
+
 ```python
+# In a file: my_agent.py
 @agent.tool
 def get_weather(city: str) -> dict:
     """Get current weather for a city"""
@@ -47,6 +52,15 @@ def send_email(to: str, subject: str, body: str) -> dict:
     """Send an email"""
     # Your implementation here
     return {"sent": True, "message_id": "abc123"}
+
+# JavaScript tools (coming soon)
+@agent.tool(language='javascript', source_code='''
+function processData(data) {
+    return data.map(x => x * 2);
+}
+''')
+def process_data_js():
+    pass  # Placeholder for JavaScript tool
 ```
 
 #### Chat Interface
@@ -150,6 +164,9 @@ response = agent.invoke(messages)
 
 Deploy your agent to production.
 
+!!! note "MCP Deployment"
+    During deployment, FlowStack extracts your tools' source code and configures them for secure MCP (Model Context Protocol) execution in isolated containers.
+
 **Returns:** `str` - Production endpoint URL
 
 **Example:**
@@ -158,6 +175,10 @@ endpoint = agent.deploy()
 print(f"Agent deployed at: {endpoint}")
 # Output: "Agent deployed at: https://api.flowstack.fun/agents/my-agent"
 ```
+
+**Common Errors:**
+- `"Cannot extract source code"`: Tools must be in .py files, not REPL/Jupyter
+- `"Tool validation failed"`: Ensure tools have proper docstrings and type hints
 
 #### `get_usage() -> UsageStats`
 
@@ -324,16 +345,14 @@ expensive_items = agent.vault.retrieve('products', filter={
 })
 ```
 
-#### `query(collection, filter=None, sort=None, limit=None) -> list`
+#### `query(collection, filter) -> list`
 
 Advanced querying with MongoDB-style filters.
 
 **Parameters:**
 
 - `collection` (str): Collection name
-- `filter` (dict, optional): Query filter
-- `sort` (list, optional): Sort specification
-- `limit` (int, optional): Maximum number of results
+- `filter` (dict): Query filter using MongoDB syntax
 
 **Returns:** `list` - List of matching items
 
@@ -342,12 +361,12 @@ Advanced querying with MongoDB-style filters.
 # Basic query
 results = agent.vault.query('users', {'age': {'$gte': 18}})
 
-# Query with sorting and limiting
-recent_orders = agent.vault.query('orders',
-    filter={'status': 'completed'},
-    sort=[('created_at', -1)],  # Descending
-    limit=10
-)
+# Complex query with multiple conditions
+active_admins = agent.vault.query('users', {
+    'role': 'admin',
+    'active': True,
+    'last_login': {'$gte': '2024-01-01'}
+})
 
 # Complex query
 power_users = agent.vault.query('users', {
@@ -523,7 +542,7 @@ Models.GPT_35_TURBO          # gpt-3.5-turbo
 from flowstack import Providers
 
 # Managed billing available
-Providers.BEDROCK            # AWS Bedrock (managed or BYOK)
+Providers.BEDROCK            # Cloud AI services (managed or BYOK)
 
 # BYOK only
 Providers.OPENAI             # OpenAI API
@@ -531,7 +550,7 @@ Providers.ANTHROPIC          # Anthropic API
 Providers.COHERE             # Cohere API
 Providers.MISTRAL            # Mistral AI API
 Providers.OLLAMA             # Local Ollama
-Providers.SAGEMAKER          # AWS SageMaker
+Providers.SAGEMAKER          # SageMaker endpoints
 Providers.WRITER             # Writer API
 ```
 
