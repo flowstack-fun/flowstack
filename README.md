@@ -129,24 +129,28 @@ print(response)
 ```python
 from flowstack import DataVault
 
-# Initialize DataVault
+# Initialize DataVault - each customer gets their own isolated database
 vault = DataVault(api_key="fs_your_api_key_here")
 
-# Store data
+# Store data - automatically stored in your customer-specific database
 vault.store('users', {
     'user_id': '123',
     'name': 'John Doe',
     'preferences': {'theme': 'dark'}
 }, key='user_123')
 
-# Retrieve data
+# Retrieve data - only your data is accessible
 user_data = vault.retrieve('users', key='user_123')
 print(user_data)
 
-# Query data
+# Query data - searches only within your isolated database
 recent_users = vault.query('users', {
     'created_at': {'$gte': '2024-01-01'}
 })
+
+# List collections - shows only your collections
+collections = vault.list_collections()
+print(f"Your collections: {collections}")
 ```
 
 ### YAML Configuration

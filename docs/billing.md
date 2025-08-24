@@ -135,11 +135,11 @@ agent = Agent(
 
 === "Managed (Starter Plan)"
     
-    **FlowStack:** $29/month
+    **FlowStack:** $50/month
     
     **AI Costs:** Included
     
-    **Total:** $29/month
+    **Total:** $50/month
     
     ✅ Predictable costs  
     ✅ No usage spikes  
@@ -147,11 +147,11 @@ agent = Agent(
 
 === "BYOK (Free + OpenAI)"
     
-    **FlowStack:** $0/month (if under 25 sessions) or $29/month
+    **FlowStack:** $0/month (if under 25 sessions) or $50/month
     
     **OpenAI GPT-4:** ~$75/month (estimated)
     
-    **Total:** $75-104/month
+    **Total:** $75-125/month
     
     ✅ Latest OpenAI models  
     ✅ Direct provider billing  
@@ -159,11 +159,11 @@ agent = Agent(
 
 === "BYOK (Starter + GPT-3.5)"
     
-    **FlowStack:** $29/month
+    **FlowStack:** $50/month
     
     **OpenAI GPT-3.5:** ~$15/month (estimated)
     
-    **Total:** $44/month
+    **Total:** $65/month
     
     ✅ Lower AI costs  
     ✅ Good performance  

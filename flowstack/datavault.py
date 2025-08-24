@@ -13,10 +13,13 @@ from .exceptions import FlowStackError
 
 class DataVault:
     """
-    DataVault provides persistent storage for FlowStack agents.
+    DataVault provides persistent storage for FlowStack customers.
     
-    All data is automatically namespaced by customer/agent for isolation.
+    Each customer gets their own completely isolated MongoDB database.
+    All data is automatically namespaced and secured per customer.
     Supports MongoDB-style queries and operations.
+    
+    Database naming: flowstack_{customer_id[:8]}_vault
     """
     
     def __init__(self, api_key: str, base_url: str = "https://api.flowstack.fun"):
@@ -235,21 +238,24 @@ class DataVault:
     
     def list_collections(self) -> List[str]:
         """
-        List all collections for this agent.
+        List all collections in your isolated database.
+        
+        Only shows collections belonging to your customer account.
+        Other customers' collections are never visible.
         
         Returns:
-            List of collection names
+            List of collection names in your database
             
         Example:
             collections = vault.list_collections()  # ['users', 'sessions', 'memories']
         """
         result = self._make_request('GET', 'collections')
         
-        # Filter collections to only show those belonging to this agent's namespace
+        # Collections from your customer's isolated database
         all_collections = result.get('collections', [])
         
         # Collections are namespaced, but we return the clean names to users
-        # The API handles the namespace prefixing internally
+        # The API handles the database isolation internally
         unique_collections = set()
         for collection in all_collections:
             # Extract collection name after namespace prefix (format: "namespace_collection")

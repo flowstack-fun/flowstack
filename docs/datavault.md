@@ -4,7 +4,7 @@ Every FlowStack agent gets persistent storage with zero configuration. No databa
 
 ## What is DataVault?
 
-**DataVault** is MongoDB-backed storage that's automatically created for each agent. Think of it as a simple database that just works.
+**DataVault** is MongoDB-backed storage that's automatically created for each customer. Each customer gets their own completely isolated database, ensuring total data privacy and security. Think of it as a simple database that just works - with enterprise-grade isolation.
 
 ```python
 # Store data
@@ -189,9 +189,9 @@ Count and analyze your data:
 total_users = agent.vault.count('users')
 active_users = agent.vault.count('users', {'active': True})
 
-# List all collections
+# List all collections - only shows your collections
 collections = agent.vault.list_collections()
-print(f"Available collections: {collections}")
+print(f"Your collections: {collections}")  # Only collections in your isolated database
 ```
 
 ## Real-World Examples
@@ -509,10 +509,41 @@ def get_storage_stats():
 
 ### Security Considerations
 
-- **DataVault data is isolated per agent** - other agents can't access it
+- **Complete database isolation per customer** - each customer has their own MongoDB database
+- **Zero cross-customer data access** - impossible to access another customer's data
 - **Data is encrypted at rest** using industry-standard encryption
-- **No cross-agent data sharing** - each agent has its own namespace
+- **Automatic namespace isolation** - collections are scoped to your database only
 - **Use for application data only** - not for user passwords or API keys
+
+### Data Isolation Architecture
+
+**Database Naming Convention:**
+```
+flowstack_{customer_id}_vault
+```
+
+**How It Works:**
+1. When you first use DataVault, FlowStack creates a dedicated MongoDB database for your customer account
+2. All your collections are stored in this isolated database
+3. Your API key can only access your database - no other customer data is visible
+4. `list_collections()` only returns collections from your database
+5. All queries and operations are automatically scoped to your database
+
+**Example Database Structure:**
+```
+MongoDB Cluster:
+├── flowstack_abc12345_vault     # Customer A's database
+│   ├── users                    # Customer A's users collection
+│   ├── orders                   # Customer A's orders collection
+│   └── sessions                 # Customer A's sessions collection
+├── flowstack_def67890_vault     # Customer B's database
+│   ├── products                 # Customer B's products collection
+│   └── analytics                # Customer B's analytics collection
+└── flowstack_ghi11223_vault     # Customer C's database
+    └── conversations            # Customer C's conversations collection
+```
+
+This architecture ensures complete data privacy - it's impossible for one customer to access another's data, even by accident.
 
 ---
 
